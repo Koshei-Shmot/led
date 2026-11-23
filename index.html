@@ -43,7 +43,7 @@ label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
 <div class="card">
 <button id="conn">Подключиться</button>
 <div id="status">Не подключено</div>
-<div id="ver" style="text-align:center;color:var(--muted);font-size:12px;margin-top:6px">версия 7</div>
+<div id="ver" style="text-align:center;color:var(--muted);font-size:12px;margin-top:6px">версия 9</div>
 </div>
 <div class="tabs" id="tabs">
 <button data-t="t1" class="sel">Цвет</button>
@@ -93,6 +93,9 @@ label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
 <button class="alt" data-sleep="60">1 час</button><button class="alt" data-sleep="0">Отмена</button>
 </div>
 <div id="tinfo"></div>
+<label>Фон: экран не гаснет, пока идут эффекты и музыка</label>
+<button class="alt sel" id="wk">Не гасить экран: вкл</button>
+<div id="wkst"></div>
 <label style="margin-top:20px">Рассвет: свет медленно разгорается от красного до тёплого белого</label>
 <div class="grid">
 <button class="alt" data-sun="5">5 мин</button><button class="alt" data-sun="15">15 мин</button>
@@ -110,7 +113,7 @@ function write(p){
   if(busy){pending=p;return;}
   busy=true;
   ch.writeValueWithoutResponse(new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]))
-  .catch(function(e){werr++;$('ver').textContent='версия 7 · ошибок записи: '+werr;})
+  .catch(function(e){werr++;$('ver').textContent='версия 9 · ошибок записи: '+werr;})
   .then(function(){busy=false;if(pending){var q=pending;pending=null;write(q);}});
 }
 function sendRGB(r,g,b){
@@ -158,6 +161,7 @@ $('off').onclick=function(){setMode(null,true);sendRGB(0,0,0);};
 /* Режимы анимации */
 function setMode(m,quiet){
   mode=m;
+  if(m)wakeOn();else wakeOff();
   cancelAnimationFrame(raf);
   document.querySelectorAll('#fx button').forEach(function(b){b.className=(b.getAttribute('data-fx')===m)?'sel':'alt';});
   if(m){
@@ -208,7 +212,7 @@ $('speed').oninput=function(e){speed=+e.target.value;};
 
 /* Музыка */
 var audio=$('audio'),musicMode='spec',actx=null,anFile=null,dly=null,data=null;
-var peak=[0.2,0.2,0.2],sm=[0,0,0],hue=0,lastBeat=0,flash=0,avgBass=0;
+var peak=[0.2,0.2,0.2],sm=[0,0,0],hue=0,lastBeat=0,flash=0,avgs=[0,0,0],armed=true,lastT=0;
 function initAudio(){
   if(!actx){var AC=window.AudioContext||window.webkitAudioContext;actx=new AC();data=new Uint8Array(1024);}
   if(actx.state==='suspended')actx.resume();
@@ -222,18 +226,21 @@ function initAudio(){
 function band(a,b){var s=0;for(var i=a;i<b;i++)s+=data[i];return s/((b-a)*255);}
 function musicFrame(){
   anFile.getByteFrequencyData(data);
-  var raw=[band(1,8),band(8,93),band(93,372)],gain=$('sens').value/100,lv=[],t=performance.now();
-  for(var i=0;i<3;i++){
-    peak[i]=Math.max(raw[i],peak[i]*0.995,0.08);
-    var n=Math.min(1,raw[i]/peak[i]*gain);n=n*n;
-    sm[i]=n>sm[i]?n:sm[i]*0.8;lv.push(sm[i]);
+  var t=performance.now(),dt=Math.min(100,t-(lastT||t));lastT=t;
+  var raw=[band(1,8),band(8,93),band(93,372)],gain=$('sens').value/100,n=[],i;
+  for(i=0;i<3;i++){
+    avgs[i]=avgs[i]*0.97+raw[i]*0.03;
+    peak[i]=Math.max(raw[i],peak[i]*0.998,0.05);
+    var base=avgs[i]*0.85;
+    n[i]=Math.max(0,Math.min(1,(raw[i]-base)/Math.max(0.03,peak[i]-base)*gain));
+    sm[i]=Math.max(n[i],sm[i]*Math.exp(-dt/120));
     $('b'+(i+1)).style.height=(2+sm[i]*46)+'px';
   }
-  if(musicMode==='spec')return [lv[0]*255,lv[1]*255,lv[2]*255];
-  if(musicMode==='pulse'){var k=Math.max(0.03,lv[0]);return [color[0]*k,color[1]*k,color[2]*k];}
-  avgBass=avgBass*0.95+raw[0]*0.05;
-  if(raw[0]>avgBass*1.3&&lv[0]>0.35&&t-lastBeat>220){lastBeat=t;hue=(hue+47)%360;flash=1;}
-  flash=Math.max(0.05,flash*0.93);
+  if(musicMode==='spec')return [sm[0]*255,sm[1]*255,sm[2]*255];
+  if(musicMode==='pulse'){var k=0.04+0.96*sm[0];return [color[0]*k,color[1]*k,color[2]*k];}
+  if(n[0]<0.25)armed=true;
+  if(armed&&n[0]>0.6&&t-lastBeat>180){armed=false;lastBeat=t;hue=(hue+47)%360;flash=1;}
+  flash=Math.max(0.05,flash*Math.exp(-dt/250));
   return hsv(hue,1,flash);
 }
 document.querySelectorAll('[data-m]').forEach(function(b){
@@ -283,6 +290,24 @@ function delTrack(id){
 }
 dbOpen(listTracks);
 $('dly').oninput=function(e){$('dv').textContent=e.target.value;if(dly)dly.delayTime.value=e.target.value/1000;};
+
+/* Не гасить экран */
+var wl=null,wakeWanted=true;
+function wakeOn(){
+  if(!wakeWanted||wl)return;
+  if(!navigator.wakeLock){$('wkst').textContent='Браузер не поддерживает: отключи автоблокировку в настройках телефона';return;}
+  navigator.wakeLock.request('screen').then(function(l){
+    wl=l;l.addEventListener('release',function(){wl=null;});$('wkst').textContent='Экран не гаснет';
+  }).catch(function(){$('wkst').textContent='Не удалось: отключи автоблокировку в настройках телефона';});
+}
+function wakeOff(){if(wl){wl.release();wl=null;}$('wkst').textContent='';}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&mode)wakeOn();});
+$('wk').onclick=function(){
+  wakeWanted=!wakeWanted;
+  $('wk').textContent='Не гасить экран: '+(wakeWanted?'вкл':'выкл');
+  $('wk').className=wakeWanted?'sel':'alt';
+  if(wakeWanted&&mode)wakeOn();else wakeOff();
+};
 
 /* Таймер сна и рассвет */
 var timerEnd=0,timerDur=0;
