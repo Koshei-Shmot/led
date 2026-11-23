@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="theme-color" content="#0b0b14">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LED лента</title>
+<style>
+:root{--bg:#0b0b14;--bg2:#1a1a30;--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.1);--text:#f2f2f7;--muted:#9a9ab0;--a1:#7c5cff;--a2:#22d3ee;--btn:rgba(255,255,255,.08);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="light"]{--bg:#f2f3f8;--bg2:#dfe2f2;--card:#fff;--line:rgba(0,0,0,.08);--text:#14141f;--muted:#6b6b80;--btn:rgba(0,0,0,.06);color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+body{margin:0 auto;min-height:100vh;background:linear-gradient(160deg,var(--bg),var(--bg2)) fixed;color:var(--text);font-family:-apple-system,system-ui,sans-serif;padding:16px;max-width:480px}
+.top{display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px}
+h1{font-size:26px;margin:0;font-weight:800;background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.ic{width:44px;height:44px;padding:0;border-radius:50%;font-size:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
+button{font:inherit;font-weight:600;border:0;border-radius:14px;padding:13px;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;width:100%;transition:transform .1s,opacity .2s}
+button:active{transform:scale(.97);opacity:.85}
+button.alt{background:var(--btn);color:var(--text);border:1px solid var(--line)}
+button.sel{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;border-color:transparent;box-shadow:0 0 16px rgba(124,92,255,.5)}
+.row{display:flex;gap:8px;margin-top:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#status,#tinfo{color:var(--muted);font-size:14px;margin-top:10px;text-align:center}
+input[type=color]{width:100%;height:64px;border:1px solid var(--line);border-radius:14px;background:none;padding:0}
+input[type=range]{width:100%;accent-color:var(--a1)}
+input[type=file],audio{width:100%}
+input[type=file]{color:var(--muted);font-size:14px}
+label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
+.sw{height:44px;padding:0;flex:1;border:2px solid var(--line)}
+.tabs{display:flex;gap:4px;margin-bottom:12px;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:16px}
+.tabs button{padding:10px 2px;font-size:14px;border-radius:12px;border:0}
+.trk{display:flex;justify-content:space-between;gap:8px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.trk span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.trk b{color:var(--muted);padding:0 8px}
+.bars{display:flex;gap:8px;height:48px;align-items:flex-end;margin-top:14px}
+.bars div{flex:1;border-radius:6px;height:2px;box-shadow:0 0 10px currentColor}
+#status::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#777;margin-right:8px}
+#status.ok::before{background:#34d399;box-shadow:0 0 8px #34d399}
+.hid{display:none}
+</style>
+</head>
+<body>
+<div class="top"><h1>💡 LED лента</h1><button id="theme" class="alt ic">☀️</button></div>
+<div class="card">
+<button id="conn">Подключиться</button>
+<div id="status">Не подключено</div>
+</div>
+<div class="tabs" id="tabs">
+<button data-t="t1" class="sel">Цвет</button>
+<button data-t="t2" class="alt">Эффекты</button>
+<button data-t="t3" class="alt">Музыка</button>
+<button data-t="t4" class="alt">Ещё</button>
+</div>
+
+<div id="t1" class="card">
+<label>Цвет</label>
+<input type="color" id="color" value="#ff0000">
+<label>Яркость: <span id="bv">100</span>%</label>
+<input type="range" id="bright" min="0" max="100" value="100">
+<div class="row"><button class="alt" id="on">Включить</button><button class="alt" id="off">Выключить</button></div>
+<div class="row" id="presets"></div>
+</div>
+
+<div id="t2" class="card hid">
+<label>Скорость</label>
+<input type="range" id="speed" min="1" max="10" value="5">
+<div class="grid" id="fx" style="margin-top:12px"></div>
+<button class="alt" id="fxstop" style="margin-top:8px">Остановить эффект</button>
+<label>Эффект «Дыхание» использует цвет с первой вкладки</label>
+</div>
+
+<div id="t3" class="card hid">
+<label>Добавь музыку из «Файлов»: она сохранится в списке</label>
+<input type="file" id="file" accept="audio/*" multiple>
+<audio id="audio" controls playsinline style="margin-top:8px"></audio>
+<div id="lib"></div>
+<div class="row">
+<button class="alt sel" data-m="spec">Частоты</button>
+<button class="alt" data-m="pulse">Пульс</button>
+<button class="alt" data-m="beat">Бит</button>
+</div>
+<label>Чувствительность</label>
+<input type="range" id="sens" min="50" max="200" value="100">
+<div class="bars"><div id="b1" style="background:#f33"></div><div id="b2" style="background:#3c3"></div><div id="b3" style="background:#38f"></div></div>
+</div>
+
+<div id="t4" class="card hid">
+<label>Таймер сна: лента плавно гаснет в конце</label>
+<div class="grid">
+<button class="alt" data-sleep="15">15 мин</button><button class="alt" data-sleep="30">30 мин</button>
+<button class="alt" data-sleep="60">1 час</button><button class="alt" data-sleep="0">Отмена</button>
+</div>
+<div id="tinfo"></div>
+<label style="margin-top:20px">Рассвет: свет медленно разгорается от красного до тёплого белого</label>
+<div class="grid">
+<button class="alt" data-sun="5">5 мин</button><button class="alt" data-sun="15">15 мин</button>
+<button class="alt" data-sun="30">30 мин</button><button class="alt" data-sun="1">Тест (1 мин)</button>
+</div>
+</div>
+
+<script>
+var ch=null,color=[255,0,0],bright=100,fadeK=1,busy=false,pending=null,mode=null,raf=0,lastSend=0,speed=5;
+var st=document.getElementById('status');
+function $(i){return document.getElementById(i);}
+function write(p){
+  if(!ch)return;
+  if(busy){pending=p;return;}
+  busy=true;
+  ch.writeValueWithoutResponse(new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]))
+  .catch(function(e){st.textContent='Ошибка: '+e.message;})
+  .then(function(){busy=false;if(pending){var q=pending;pending=null;write(q);}});
+}
+function sendRGB(r,g,b){
+  write([r,g,b].map(function(v){return Math.max(0,Math.min(255,Math.round(v*fadeK)));}));
+}
+function sendStatic(){var k=bright/100;sendRGB(color[0]*k,color[1]*k,color[2]*k);}
+function touch(){if(!timerEnd)fadeK=1;}
+function hex2rgb(h){return [parseInt(h.substr(1,2),16),parseInt(h.substr(3,2),16),parseInt(h.substr(5,2),16)];}
+function hsv(h,s,v){var f=function(n){var k=(n+h/60)%6;return v*(1-s*Math.max(0,Math.min(k,4-k,1)))*255;};return [f(5),f(3),f(1)];}
+
+$('conn').onclick=function(){
+  if(!navigator.bluetooth){st.textContent='Открой страницу в браузере Bluefy';return;}
+  st.textContent='Поиск...';
+  navigator.bluetooth.requestDevice({filters:[{namePrefix:'LEDCAR'}],optionalServices:[0xFFE0]})
+  .then(function(d){
+    d.addEventListener('gattserverdisconnected',function(){ch=null;st.textContent='Отключено';});
+    return d.gatt.connect();
+  })
+  .then(function(s){return s.getPrimaryService(0xFFE0);})
+  .then(function(s){return s.getCharacteristic(0xFFE1);})
+  .then(function(c){ch=c;st.textContent='Подключено';sendStatic();})
+  .catch(function(e){st.textContent='Ошибка: '+e.message;});
+};
+
+/* Вкладки */
+document.querySelectorAll('#tabs button').forEach(function(b){
+  b.onclick=function(){
+    document.querySelectorAll('#tabs button').forEach(function(x){x.className=(x===b)?'sel':'alt';});
+    ['t1','t2','t3','t4'].forEach(function(t){$(t).classList.toggle('hid',t!==b.getAttribute('data-t'));});
+  };
+});
+
+/* Цвет */
+function setBright(v){bright=v;$('bright').value=v;$('bv').textContent=v;}
+$('color').oninput=function(e){touch();setMode(null,true);color=hex2rgb(e.target.value);sendStatic();};
+$('bright').oninput=function(e){touch();setBright(+e.target.value);if(!mode)sendStatic();};
+$('on').onclick=function(){touch();setMode(null,true);setBright(Math.max(bright,10));sendStatic();};
+$('off').onclick=function(){setMode(null,true);sendRGB(0,0,0);};
+['#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff','#ffffff'].forEach(function(h){
+  var b=document.createElement('button');b.className='sw';b.style.background=h;
+  b.onclick=function(){touch();setMode(null,true);$('color').value=h;color=hex2rgb(h);sendStatic();};
+  $('presets').appendChild(b);
+});
+
+/* Режимы анимации */
+function setMode(m,quiet){
+  mode=m;
+  cancelAnimationFrame(raf);
+  document.querySelectorAll('#fx button').forEach(function(b){b.className=(b.getAttribute('data-fx')===m)?'sel':'alt';});
+  if(m){
+    touch();
+    if(m!=='music'&&audio&&!audio.paused)audio.pause();
+    raf=requestAnimationFrame(tick);
+  }else if(!quiet){setTimeout(sendStatic,150);}
+}
+function tick(t){
+  raf=requestAnimationFrame(tick);
+  var c=(mode==='music')?musicFrame():effectFrame(t);
+  if(!c||t-lastSend<40)return;
+  lastSend=t;
+  var v=bright/100;
+  sendRGB(c[0]*v,c[1]*v,c[2]*v);
+}
+
+/* Эффекты */
+var fl=0.5,spT=0,spH=0,spV=0,sunT0=0,sunDur=0;
+var FX=[['rainbow','Радуга'],['breath','Дыхание'],['fire','Огонь'],['ocean','Океан'],['sparkle','Искры'],['jump','Переходы RGB'],['police','Полиция'],['strobe','Стробоскоп']];
+function effectFrame(t){
+  var s=speed/5,c;
+  switch(mode){
+    case 'rainbow':c=hsv((t*0.06*s)%360,1,1);break;
+    case 'breath':var b=(Math.sin(t*0.003*s)+1)/2;c=[color[0]*b,color[1]*b,color[2]*b];break;
+    case 'strobe':c=((t*s/100)%2<1)?[255,255,255]:[0,0,0];break;
+    case 'fire':fl=fl*0.7+Math.random()*0.3;c=[255*(0.4+0.6*fl),90*fl*Math.random(),0];break;
+    case 'police':c=((t*s/180)%2<1)?[255,0,0]:[0,0,255];break;
+    case 'sparkle':if(t-spT>150/s){spT=t;spH=Math.random()*360;spV=1;}spV*=0.93;c=hsv(spH,1,spV);break;
+    case 'jump':c=[[255,0,0],[0,255,0],[0,0,255]][Math.floor(t*s/600)%3];break;
+    case 'ocean':c=hsv(180+(Math.sin(t*0.0015*s)+1)*30,1,0.5+0.25*(Math.sin(t*0.004*s)+1));break;
+    case 'sunrise':
+      var p=Math.min(1,(t-sunT0)/sunDur);
+      var from=p<0.5?[255,0,0]:[255,90,0],to=p<0.5?[255,90,0]:[255,190,90],q=p<0.5?p*2:(p-0.5)*2;
+      var k=Math.max(0.02,p);
+      c=[(from[0]+(to[0]-from[0])*q)*k,(from[1]+(to[1]-from[1])*q)*k,(from[2]+(to[2]-from[2])*q)*k];break;
+    default:return null;
+  }
+  return c;
+}
+FX.forEach(function(f){
+  var b=document.createElement('button');b.className='alt';b.textContent=f[1];b.setAttribute('data-fx',f[0]);
+  b.onclick=function(){setMode(f[0]);};
+  $('fx').appendChild(b);
+});
+$('fxstop').onclick=function(){setMode(null);};
+$('speed').oninput=function(e){speed=+e.target.value;};
+
+/* Музыка */
+var audio=$('audio'),musicMode='spec',actx=null,anFile=null,data=null;
+var peak=[0.2,0.2,0.2],sm=[0,0,0],hue=0,lastBeat=0,flash=0,avgBass=0;
+function initAudio(){
+  if(!actx){var AC=window.AudioContext||window.webkitAudioContext;actx=new AC();data=new Uint8Array(256);}
+  if(actx.state==='suspended')actx.resume();
+  if(anFile)return;
+  var src=actx.createMediaElementSource(audio);
+  anFile=actx.createAnalyser();anFile.fftSize=512;anFile.smoothingTimeConstant=0.4;
+  src.connect(anFile);anFile.connect(actx.destination);
+}
+function band(a,b){var s=0;for(var i=a;i<b;i++)s+=data[i];return s/((b-a)*255);}
+function musicFrame(){
+  anFile.getByteFrequencyData(data);
+  var raw=[band(1,4),band(4,30),band(30,120)],gain=$('sens').value/100,lv=[],t=performance.now();
+  for(var i=0;i<3;i++){
+    peak[i]=Math.max(raw[i],peak[i]*0.995,0.08);
+    var n=Math.min(1,raw[i]/peak[i]*gain);n=n*n;
+    sm[i]=n>sm[i]?n:sm[i]*0.8;lv.push(sm[i]);
+    $('b'+(i+1)).style.height=(2+sm[i]*46)+'px';
+  }
+  if(musicMode==='spec')return [lv[0]*255,lv[1]*255,lv[2]*255];
+  if(musicMode==='pulse'){var k=Math.max(0.03,lv[0]);return [color[0]*k,color[1]*k,color[2]*k];}
+  avgBass=avgBass*0.95+raw[0]*0.05;
+  if(raw[0]>avgBass*1.3&&lv[0]>0.35&&t-lastBeat>220){lastBeat=t;hue=(hue+47)%360;flash=1;}
+  flash=Math.max(0.05,flash*0.93);
+  return hsv(hue,1,flash);
+}
+document.querySelectorAll('[data-m]').forEach(function(b){
+  b.onclick=function(){
+    musicMode=b.getAttribute('data-m');
+    document.querySelectorAll('[data-m]').forEach(function(x){x.className=(x===b)?'alt sel':'alt';});
+  };
+});
+audio.addEventListener('play',function(){initAudio();setMode('music');});
+audio.addEventListener('pause',function(){if(mode==='music')setMode(null);});
+audio.addEventListener('ended',function(){if(mode==='music')setMode(null);});
+$('file').onchange=function(e){
+  var fs=e.target.files;if(!fs.length)return;
+  for(var i=0;i<fs.length;i++)saveTrack(fs[i]);
+  playBlob(fs[0]);
+};
+function playBlob(b){audio.src=URL.createObjectURL(b);audio.play().catch(function(){});}
+
+/* Библиотека (хранится в браузере) */
+var db=null;
+function dbOpen(cb){
+  try{
+    var r=indexedDB.open('led-music',1);
+    r.onupgradeneeded=function(){r.result.createObjectStore('tracks',{keyPath:'id',autoIncrement:true});};
+    r.onsuccess=function(){db=r.result;cb();};
+  }catch(e){}
+}
+function listTracks(){
+  if(!db)return;
+  var box=$('lib');box.innerHTML='';
+  db.transaction('tracks').objectStore('tracks').openCursor().onsuccess=function(e){
+    var c=e.target.result;if(!c)return;
+    var v=c.value,row=document.createElement('div');row.className='trk';
+    var n=document.createElement('span');n.textContent=v.name;n.onclick=function(){playBlob(v.blob);};
+    var x=document.createElement('b');x.textContent='✕';x.onclick=function(){delTrack(v.id);};
+    row.appendChild(n);row.appendChild(x);box.appendChild(row);
+    c.continue();
+  };
+}
+function saveTrack(f){
+  if(!db)return;
+  try{var tx=db.transaction('tracks','readwrite');tx.objectStore('tracks').add({name:f.name,blob:f});tx.oncomplete=listTracks;}catch(e){}
+}
+function delTrack(id){
+  if(!db)return;
+  var tx=db.transaction('tracks','readwrite');tx.objectStore('tracks').delete(id);tx.oncomplete=listTracks;
+}
+dbOpen(listTracks);
+
+/* Таймер сна и рассвет */
+var timerEnd=0,timerDur=0;
+document.querySelectorAll('[data-sleep]').forEach(function(b){
+  b.onclick=function(){
+    var m=+b.getAttribute('data-sleep');
+    if(!m){timerEnd=0;fadeK=1;$('tinfo').textContent='';if(!mode)sendStatic();return;}
+    timerDur=m*60000;timerEnd=Date.now()+timerDur;fadeK=1;
+  };
+});
+setInterval(function(){
+  if(!timerEnd)return;
+  var left=timerEnd-Date.now();
+  if(left<=0){
+    timerEnd=0;fadeK=0;$('tinfo').textContent='Выключено';
+    audio.pause();setMode(null);
+    sendRGB(0,0,0);return;
+  }
+  fadeK=Math.min(1,left/Math.min(timerDur,300000));
+  $('tinfo').textContent='Осталось: '+Math.ceil(left/60000)+' мин';
+  if(!mode)sendStatic();
+},300);
+document.querySelectorAll('[data-sun]').forEach(function(b){
+  b.onclick=function(){
+    timerEnd=0;fadeK=1;$('tinfo').textContent='';
+    sunDur=+b.getAttribute('data-sun')*60000;sunT0=performance.now();
+    setMode('sunrise');
+  };
+});
+
+/* Тема */
+(function(){
+  var root=document.documentElement;
+  function apply(t){root.setAttribute('data-theme',t);$('theme').textContent=(t==='dark')?'☀️':'🌙';}
+  var saved='dark';
+  try{saved=localStorage.getItem('led-theme')||'dark';}catch(e){}
+  apply(saved);
+  $('theme').onclick=function(){
+    var t=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    apply(t);
+    try{localStorage.setItem('led-theme',t);}catch(e){}
+  };
+})();
+/* Статус подключения: зелёная точка */
+setInterval(function(){st.className=(ch?'ok':'');},500);
+</script>
+</body>
+</html>
