@@ -101,12 +101,13 @@ label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
 var ch=null,color=[255,0,0],bright=100,fadeK=1,busy=false,pending=null,mode=null,raf=0,lastSend=0,speed=5;
 var st=document.getElementById('status');
 function $(i){return document.getElementById(i);}
+function errText(e){return 'Ошибка: '+((e&&(e.name||e.message))?((e.name||'')+' '+(e.message||'')).trim():String(e));}
 function write(p){
   if(!ch)return;
   if(busy){pending=p;return;}
   busy=true;
   ch.writeValueWithoutResponse(new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]))
-  .catch(function(e){st.textContent='Ошибка: '+e.message;})
+  .catch(function(e){st.textContent=errText(e);})
   .then(function(){busy=false;if(pending){var q=pending;pending=null;write(q);}});
 }
 function sendRGB(r,g,b){
@@ -120,15 +121,15 @@ function hsv(h,s,v){var f=function(n){var k=(n+h/60)%6;return v*(1-s*Math.max(0,
 $('conn').onclick=function(){
   if(!navigator.bluetooth){st.textContent='Открой страницу в браузере Bluefy';return;}
   st.textContent='Поиск...';
-  navigator.bluetooth.requestDevice({filters:[{namePrefix:'LEDCAR'}],optionalServices:[0xFFE0]})
+  navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:['0000ffe0-0000-1000-8000-00805f9b34fb']})
   .then(function(d){
     d.addEventListener('gattserverdisconnected',function(){ch=null;st.textContent='Отключено';});
     return d.gatt.connect();
   })
-  .then(function(s){return s.getPrimaryService(0xFFE0);})
-  .then(function(s){return s.getCharacteristic(0xFFE1);})
+  .then(function(s){return s.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');})
+  .then(function(s){return s.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');})
   .then(function(c){ch=c;st.textContent='Подключено';sendStatic();})
-  .catch(function(e){st.textContent='Ошибка: '+e.message;});
+  .catch(function(e){st.textContent=errText(e);});
 };
 
 /* Вкладки */
