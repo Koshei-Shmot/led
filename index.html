@@ -43,7 +43,7 @@ label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
 <div class="card">
 <button id="conn">Подключиться</button>
 <div id="status">Не подключено</div>
-<div style="text-align:center;color:var(--muted);font-size:12px;margin-top:6px">версия 6</div>
+<div id="ver" style="text-align:center;color:var(--muted);font-size:12px;margin-top:6px">версия 7</div>
 </div>
 <div class="tabs" id="tabs">
 <button data-t="t1" class="sel">Цвет</button>
@@ -81,6 +81,8 @@ label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
 </div>
 <label>Чувствительность</label>
 <input type="range" id="sens" min="50" max="200" value="100">
+<label>Задержка звука: <span id="dv">200</span> мс (чтобы свет успевал за музыкой)</label>
+<input type="range" id="dly" min="0" max="600" value="200">
 <div class="bars"><div id="b1" style="background:#f33"></div><div id="b2" style="background:#3c3"></div><div id="b3" style="background:#38f"></div></div>
 </div>
 
@@ -99,7 +101,7 @@ label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
 </div>
 
 <script>
-var ch=null,color=[255,0,0],bright=100,fadeK=1,busy=false,pending=null,mode=null,raf=0,lastSend=0,speed=5;
+var werr=0,ch=null,color=[255,0,0],bright=100,fadeK=1,busy=false,pending=null,mode=null,raf=0,lastSend=0,speed=5;
 var st=document.getElementById('status');
 function $(i){return document.getElementById(i);}
 function errText(e){return 'Ошибка: '+((e&&(e.name||e.message))?((e.name||'')+' '+(e.message||'')).trim():String(e));}
@@ -108,7 +110,7 @@ function write(p){
   if(busy){pending=p;return;}
   busy=true;
   ch.writeValueWithoutResponse(new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]))
-  .catch(function(e){st.textContent=errText(e);})
+  .catch(function(e){werr++;$('ver').textContent='версия 7 · ошибок записи: '+werr;})
   .then(function(){busy=false;if(pending){var q=pending;pending=null;write(q);}});
 }
 function sendRGB(r,g,b){
@@ -167,7 +169,7 @@ function setMode(m,quiet){
 function tick(t){
   raf=requestAnimationFrame(tick);
   var c=(mode==='music')?musicFrame():effectFrame(t);
-  if(!c||t-lastSend<40)return;
+  if(!c||t-lastSend<30)return;
   lastSend=t;
   var v=bright/100;
   sendRGB(c[0]*v,c[1]*v,c[2]*v);
@@ -205,20 +207,22 @@ $('fxstop').onclick=function(){setMode(null);};
 $('speed').oninput=function(e){speed=+e.target.value;};
 
 /* Музыка */
-var audio=$('audio'),musicMode='spec',actx=null,anFile=null,data=null;
+var audio=$('audio'),musicMode='spec',actx=null,anFile=null,dly=null,data=null;
 var peak=[0.2,0.2,0.2],sm=[0,0,0],hue=0,lastBeat=0,flash=0,avgBass=0;
 function initAudio(){
-  if(!actx){var AC=window.AudioContext||window.webkitAudioContext;actx=new AC();data=new Uint8Array(256);}
+  if(!actx){var AC=window.AudioContext||window.webkitAudioContext;actx=new AC();data=new Uint8Array(1024);}
   if(actx.state==='suspended')actx.resume();
   if(anFile)return;
   var src=actx.createMediaElementSource(audio);
-  anFile=actx.createAnalyser();anFile.fftSize=512;anFile.smoothingTimeConstant=0.4;
-  src.connect(anFile);anFile.connect(actx.destination);
+  anFile=actx.createAnalyser();anFile.fftSize=2048;anFile.smoothingTimeConstant=0.3;
+  src.connect(anFile);
+  dly=actx.createDelay(1);dly.delayTime.value=$('dly').value/1000;
+  src.connect(dly);dly.connect(actx.destination);
 }
 function band(a,b){var s=0;for(var i=a;i<b;i++)s+=data[i];return s/((b-a)*255);}
 function musicFrame(){
   anFile.getByteFrequencyData(data);
-  var raw=[band(1,4),band(4,30),band(30,120)],gain=$('sens').value/100,lv=[],t=performance.now();
+  var raw=[band(1,8),band(8,93),band(93,372)],gain=$('sens').value/100,lv=[],t=performance.now();
   for(var i=0;i<3;i++){
     peak[i]=Math.max(raw[i],peak[i]*0.995,0.08);
     var n=Math.min(1,raw[i]/peak[i]*gain);n=n*n;
@@ -278,6 +282,7 @@ function delTrack(id){
   var tx=db.transaction('tracks','readwrite');tx.objectStore('tracks').delete(id);tx.oncomplete=listTracks;
 }
 dbOpen(listTracks);
+$('dly').oninput=function(e){$('dv').textContent=e.target.value;if(dly)dly.delayTime.value=e.target.value/1000;};
 
 /* Таймер сна и рассвет */
 var timerEnd=0,timerDur=0;
