@@ -123,7 +123,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 </head>
 <body>
 <div class="top">
-  <div class="brand"><h1>LED лента</h1><span id="ver">версия 32.1</span></div>
+  <div class="brand"><h1>LED лента</h1><span id="ver">версия 32.2</span></div>
   <button id="theme" class="alt ic">День</button>
 </div>
 <div class="card conn-card">
@@ -322,12 +322,16 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 </div>
 
 <script>
-var werr=0,bleDev=null,ch=null,useWriteNoResp=true,color=[255,0,0],bright=100,manualBright=100,fadeK=1;
+var werr=0,bleDev=null,ch=null,isIOS=/iPhone|iPad|iPod|Bluefy/i.test(navigator.userAgent||''),useWriteNoResp=!isIOS;
+var color=[255,0,0],bright=100,manualBright=100,fadeK=1;
 var busy=false,pending=null,pendingPrio=false,mode=null,raf=0,lastSend=0,speed=5;
 var lastSentRGB=[-1,-1,-1],lastGlowT=0,sunDur=60000,sunT0=0,curFx='rainbow';
 var st=document.getElementById('status');
 function $(i){return document.getElementById(i);}
-function errText(e){return 'Ошибка: '+((e&&(e.name||e.message))?((e.name||'')+' '+(e.message||'')).trim():String(e));}
+function errText(e){
+  if(e===2||String(e)==='2')return 'Сбой Bluetooth (код 2) — проверьте, что лента не занята другим приложением';
+  return 'Ошибка: '+((e&&(e.name||e.message))?((e.name||'')+' '+(e.message||'')).trim():String(e));
+}
 function saveCfg(k,v){try{localStorage.setItem('led-'+k,String(v));}catch(e){}}
 function loadCfg(k,d){try{var v=localStorage.getItem('led-'+k);return v===null?d:v;}catch(e){return d;}}
 
@@ -361,15 +365,15 @@ function setLedGlow(r,g,b,force){
   document.documentElement.style.setProperty('--led',Math.round(r)+','+Math.round(g)+','+Math.round(b));
 }
 
-/* Умная очередь Bluetooth с приоритетом удара и автовыбором способа записи */
+/* Умная очередь Bluetooth с приоритетом удара и поддержкой Bluefy / Chrome */
 function bleSendPkt(pkt){
   if(useWriteNoResp&&ch.writeValueWithoutResponse){
     return ch.writeValueWithoutResponse(pkt).catch(function(){
       useWriteNoResp=false;
-      return ch.writeValueWithResponse?ch.writeValueWithResponse(pkt):ch.writeValue(pkt);
+      return ch.writeValue?ch.writeValue(pkt):ch.writeValueWithResponse(pkt);
     });
   }
-  return ch.writeValueWithResponse?ch.writeValueWithResponse(pkt):ch.writeValue(pkt);
+  return ch.writeValue?ch.writeValue(pkt):ch.writeValueWithResponse(pkt);
 }
 
 function write(p,prio){
@@ -383,7 +387,7 @@ function write(p,prio){
   var pkt=new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]);
   try{
     bleSendPkt(pkt).catch(function(){
-      if(ch){werr++;$('ver').textContent='версия 32.1 · сбоев: '+werr;}
+      if(ch){werr++;$('ver').textContent='версия 32.2 · сбоев: '+werr;}
     }).then(function(){
       busy=false;
       if(pending){
@@ -394,7 +398,7 @@ function write(p,prio){
     });
   }catch(e){
     busy=false;
-    if(ch){werr++;$('ver').textContent='версия 32.1 · сбоев: '+werr;}
+    if(ch){werr++;$('ver').textContent='версия 32.2 · сбоев: '+werr;}
   }
 }
 
@@ -490,13 +494,11 @@ function findBleChar(srv){
           for(i=0;i<chars.length;i++){
             c=chars[i];
             if(c.properties&&(c.properties.writeWithoutResponse||c.properties.write))return c;
-          }
-          return nextSvc();
-        }).catch(function(){return nextSvc();});
-      }
-      return nextSvc();
-    });
-  });
+/* Подключение Bluetooth (ELK-BLEDOM, совместимо с Bluefy и Chrome) */
+function onBleDisconnect(){
+  ch=null;busy=false;pending=null;pendingPrio=false;
+  st.textContent='Отключено';
+  $('conn').textContent='Подключиться';
 }
 
 $('conn').onclick=function(){
@@ -512,20 +514,22 @@ $('conn').onclick=function(){
   st.textContent='Поиск ленты...';
   navigator.bluetooth.requestDevice({
     acceptAllDevices:true,
-    optionalServices:[0xFFF0,'0000fff0-0000-1000-8000-00805f9b34fb',0xFFE0,0xFFE5]
+    optionalServices:[0xFFF0]
   }).then(function(dev){
     if(bleDev)bleDev.removeEventListener('gattserverdisconnected',onBleDisconnect);
     bleDev=dev;
     bleDev.addEventListener('gattserverdisconnected',onBleDisconnect);
     st.textContent='Подключение...';
-    return connectGattRetry(dev,2);
+    return dev.gatt.connect();
   }).then(function(srv){
     st.textContent='Поиск канала...';
-    return findBleChar(srv);
+    return srv.getPrimaryService(0xFFF0);
+  }).then(function(svc){
+    return svc.getCharacteristic(0xFFF3);
   }).then(function(c){
     ch=c;busy=false;pending=null;pendingPrio=false;werr=0;lastSentRGB=[-1,-1,-1];
-    useWriteNoResp=!(c.properties&&c.properties.writeWithoutResponse===false);
-    $('ver').textContent='версия 32.1';
+    useWriteNoResp=!isIOS&&!(c.properties&&c.properties.writeWithoutResponse===false);
+    $('ver').textContent='версия 32.2';
     st.textContent='Подключено';
     $('conn').textContent='Отключить';
     setTimeout(function(){if(ch)sendStatic(true);},90);
