@@ -6,59 +6,128 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>LED лента</title>
 <style>
-*,*::before,*::after{box-sizing:border-box}
-:root{--bg:#0b0b14;--bg2:#1a1a30;--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.1);--text:#f2f2f7;--muted:#9a9ab0;--a1:#7c5cff;--a2:#22d3ee;--btn:rgba(255,255,255,.08);color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-:root[data-theme="light"]{--bg:#f2f3f8;--bg2:#dfe2f2;--card:#fff;--line:rgba(0,0,0,.08);--text:#14141f;--muted:#6b6b80;--btn:rgba(0,0,0,.06);color-scheme:light}
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#07070b;--bg2:#101018;--card:rgba(20,20,30,.78);--card2:rgba(255,255,255,.04);
+  --line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+  --text:#f5f5f9;--muted:#88889d;--btn:rgba(255,255,255,.06);
+  --pill:#f5f5f9;--pill-t:#09090e;--led:255,0,0;
+  color-scheme:dark;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)
+}
+:root[data-theme="light"]{
+  --bg:#f4f5f8;--bg2:#e8eaf0;--card:rgba(255,255,255,.88);--card2:rgba(0,0,0,.03);
+  --line:rgba(15,15,25,.08);--line2:rgba(15,15,25,.14);
+  --text:#111118;--muted:#6e6e82;--btn:rgba(15,15,25,.05);
+  --pill:#111118;--pill-t:#ffffff;
+  color-scheme:light
+}
 html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
-body{margin:0 auto;min-height:100vh;background:linear-gradient(160deg,var(--bg),var(--bg2)) fixed;color:var(--text);font-family:-apple-system,system-ui,sans-serif;padding:16px;max-width:480px}
-.top{display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px}
-h1{font-size:26px;margin:0;font-weight:800;background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
-.ic{width:auto;height:38px;padding:0 14px;border-radius:12px;font-size:13px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
-button{font:inherit;font-weight:600;border:0;border-radius:14px;padding:13px;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;width:100%;transition:transform .1s,opacity .2s}
-button:active{transform:scale(.97);opacity:.85}
-button.alt{background:var(--btn);color:var(--text);border:1px solid var(--line)}
-button.sel{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;border-color:transparent;box-shadow:0 0 16px rgba(124,92,255,.5)}
-.row{display:flex;gap:8px;margin-top:10px}
-.row button{padding:11px 4px;font-size:13px}
+body{
+  margin:0 auto;min-height:100vh;max-width:460px;padding:14px 16px 28px;
+  background:radial-gradient(120% 55% at 50% -10%,rgba(var(--led),.16),transparent 65%),linear-gradient(180deg,var(--bg),var(--bg2)) fixed;
+  color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter",system-ui,sans-serif;
+  letter-spacing:-0.01em;transition:background .3s ease
+}
+.top{display:flex;align-items:center;justify-content:space-between;margin:4px 0 14px}
+.brand{display:flex;align-items:baseline;gap:8px}
+h1{font-size:22px;margin:0;font-weight:700;letter-spacing:-0.03em;color:var(--text)}
+#ver{font-size:11px;font-weight:600;color:var(--muted);padding:2px 7px;border-radius:99px;background:var(--btn);border:1px solid var(--line)}
+.ic{width:auto;height:34px;padding:0 13px;border-radius:99px;font-size:12px;font-weight:600}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;margin-bottom:12px;
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  box-shadow:0 12px 32px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06)
+}
+.conn-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px}
+.conn-card #conn{width:auto;padding:10px 18px;border-radius:99px;font-size:13px;flex-shrink:0}
+#status{color:var(--muted);font-size:13px;font-weight:500;margin:0;display:flex;align-items:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#status::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#666678;margin-right:8px;flex-shrink:0;transition:all .25s}
+#status.ok{color:var(--text)}
+#status.ok::before{background:#10b981;box-shadow:0 0 10px #10b981}
+button{
+  font:inherit;font-weight:600;font-size:13px;border:1px solid transparent;border-radius:13px;padding:12px 14px;
+  background:var(--pill);color:var(--pill-t);width:100%;cursor:pointer;
+  transition:transform .12s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease
+}
+button:active{transform:scale(.97);opacity:.88}
+button.alt{background:var(--btn);color:var(--text);border-color:var(--line)}
+button.sel{background:var(--pill);color:var(--pill-t);border-color:transparent;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.row{display:flex;gap:7px;margin-top:10px}
+.row button{padding:10px 4px;font-size:12px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-#status,#tinfo{color:var(--muted);font-size:14px;margin-top:10px;text-align:center}
-input[type=color]{width:100%;height:64px;border:1px solid var(--line);border-radius:14px;background:none;padding:0}
-input[type=range]{width:100%;accent-color:var(--a1)}
-input[type=file],audio{width:100%}
-input[type=file]{color:var(--muted);font-size:14px}
-label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
-.sw{height:44px;padding:0;flex:1;border:2px solid var(--line)}
-.tabs{display:flex;gap:4px;margin-bottom:12px;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:16px}
-.tabs button{padding:10px 1px;font-size:13px;border-radius:12px;border:0}
-input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--btn);color:var(--text);font:inherit;font-size:14px}
-.trk{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 4px;border-bottom:1px solid var(--line)}
-.trk span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
-.trk small{color:var(--muted);font-size:12px;flex-shrink:0}
-.trk b{color:var(--muted);padding:2px 8px;font-size:13px;flex-shrink:0}
-#lib{max-height:220px;overflow-y:auto;margin-top:8px}
-#tmap{width:100%;height:34px;border-radius:10px;background:var(--btn);border:1px solid var(--line);margin-top:8px;display:block;cursor:pointer}
-.pads{display:flex;gap:8px;margin-top:8px}
-.pads button{padding:11px 4px;font-size:13px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
-.subtabs{display:flex;gap:4px;margin:12px 0 4px;padding:3px;background:var(--btn);border:1px solid var(--line);border-radius:12px}
-.subtabs button{padding:8px 2px;font-size:12px;border-radius:9px;border:0}
-.bars{display:flex;gap:8px;height:44px;align-items:flex-end;margin-top:8px}
-.bars div{flex:1;border-radius:6px;height:2px;box-shadow:0 0 10px currentColor}
-.blbls{display:flex;gap:6px;margin-top:6px;text-align:center;font-size:11px;line-height:1.35;color:var(--muted)}
-.blbls span{flex:1;background:var(--btn);border:1px solid var(--line);border-radius:8px;padding:4px 2px}
-.blbls b{display:block;color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;margin-top:1px}
-.tele{margin-top:8px;padding:7px 10px;border-radius:11px;background:var(--btn);border:1px solid var(--line);font-size:12px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
-#status::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#777;margin-right:8px}
-#status.ok::before{background:#34d399;box-shadow:0 0 8px #34d399}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.grid4 button{padding:9px 2px;font-size:11px;border-radius:11px}
+#tinfo,#wkst{color:var(--muted);font-size:12px;margin-top:8px;text-align:center}
+label{display:block;color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 7px}
+label:first-child{margin-top:0}
+.cpad{
+  position:relative;height:76px;border-radius:16px;overflow:hidden;border:1px solid var(--line2);
+  background:radial-gradient(90% 120% at 20% 20%,rgba(255,255,255,.28),transparent 55%),rgb(var(--led));
+  box-shadow:0 8px 24px rgba(var(--led),.3),inset 0 1px 0 rgba(255,255,255,.3);
+  display:flex;align-items:flex-end;justify-content:space-between;padding:10px 14px;transition:box-shadow .25s ease
+}
+.cpad input[type=color]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+.cpad span{position:relative;pointer-events:none;font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.55);font-variant-numeric:tabular-nums}
+.cpad small{position:relative;pointer-events:none;font-size:11px;font-weight:500;color:rgba(255,255,255,.88);text-shadow:0 1px 4px rgba(0,0,0,.55)}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:99px;
+  background:var(--line2);outline:none;margin:6px 0 4px
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;
+  background:var(--pill);border:2px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer
+}
+input[type=range]::-moz-range-thumb{
+  width:20px;height:20px;border-radius:50%;background:var(--pill);border:2px solid var(--bg);
+  box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer
+}
+.file-btn{
+  display:block;text-align:center;padding:11px 14px;border-radius:13px;background:var(--btn);
+  border:1px dashed var(--line2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;text-transform:none;letter-spacing:0
+}
+.file-btn input{display:none}
+.sw{height:36px;padding:0;flex:1;border-radius:99px;border:2px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 2px rgba(255,255,255,.25)}
+.sw.active{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--pill)}
+.tabs{
+  display:flex;gap:4px;margin-bottom:12px;padding:4px;background:var(--card);
+  border:1px solid var(--line);border-radius:16px;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)
+}
+.tabs button{padding:9px 2px;font-size:12px;border-radius:12px;border:0;box-shadow:none}
+input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--btn);color:var(--text);font:inherit;font-size:14px}
+.deck{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.deck-info{flex:1;min-width:0}
+.deck-title{font-size:14px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.deck-time{font-size:11px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.deck button{width:auto;padding:9px 16px;border-radius:99px;font-size:12px;flex-shrink:0}
+.trk{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 6px;border-bottom:1px solid var(--line)}
+.trk:last-child{border-bottom:0}
+.trk span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:500;cursor:pointer}
+.trk small{color:var(--muted);font-size:11px;flex-shrink:0;padding:2px 6px;border-radius:6px;background:var(--card2)}
+.trk b{color:var(--muted);padding:3px 7px;font-size:11px;font-weight:600;flex-shrink:0;border-radius:7px;background:var(--btn);cursor:pointer}
+#lib{max-height:210px;overflow-y:auto;margin-top:8px}
+#tmap{width:100%;height:36px;border-radius:11px;background:var(--card2);border:1px solid var(--line);margin-top:8px;display:block;cursor:pointer}
+.pads{display:flex;gap:7px;margin-top:8px}
+.pads button{padding:11px 4px;font-size:12px;border-radius:12px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.subtabs{display:flex;gap:4px;margin:12px 0 8px;padding:3px;background:var(--card2);border:1px solid var(--line);border-radius:12px}
+.subtabs button{padding:8px 2px;font-size:11px;border-radius:9px;border:0;box-shadow:none}
+.bars{display:flex;gap:8px;height:40px;align-items:flex-end;margin-top:8px;padding:0 2px}
+.bars div{flex:1;border-radius:5px 5px 2px 2px;height:2px;transition:height .05s linear}
+.blbls{display:flex;gap:6px;margin-top:6px;text-align:center;font-size:10px;line-height:1.35;color:var(--muted)}
+.blbls span{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:5px 2px}
+.blbls b{display:block;color:var(--text);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+.tele{margin-top:8px;padding:7px 10px;border-radius:11px;background:var(--card2);border:1px solid var(--line);font-size:11px;font-weight:500;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
 .hid{display:none}
 </style>
 </head>
 <body>
-<div class="top"><h1>LED лента</h1><button id="theme" class="alt ic">День</button></div>
-<div class="card">
-<button id="conn">Подключиться</button>
-<div id="status">Не подключено</div>
-<div id="ver" style="text-align:center;color:var(--muted);font-size:12px;margin-top:6px">версия 23</div>
+<div class="top">
+  <div class="brand"><h1>LED лента</h1><span id="ver">версия 25</span></div>
+  <button id="theme" class="alt ic">День</button>
+</div>
+<div class="card conn-card">
+  <div id="status">Не подключено</div>
+  <button id="conn">Подключиться</button>
 </div>
 <div class="tabs" id="tabs">
 <button data-t="t1" class="sel">Цвет</button>
@@ -69,8 +138,12 @@ input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var
 </div>
 
 <div id="t1" class="card">
-<label>Цвет</label>
-<input type="color" id="color" value="#ff0000">
+<label>Цвет ленты</label>
+<div class="cpad" id="colorPad">
+  <input type="color" id="color" value="#ff0000">
+  <span id="colorHex">#FF0000</span>
+  <small>Нажми для палитры</small>
+</div>
 <label>Яркость: <span id="bv">100</span>%</label>
 <input type="range" id="bright" min="0" max="100" value="100">
 <div class="row"><button class="alt" id="on">Включить</button><button class="alt" id="off">Выключить</button></div>
@@ -78,16 +151,23 @@ input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var
 </div>
 
 <div id="t2" class="card hid">
-<label>Скорость</label>
+<label>Скорость: <span id="spv">5</span></label>
 <input type="range" id="speed" min="1" max="10" value="5">
 <div class="grid" id="fx" style="margin-top:12px"></div>
 <button class="alt" id="fxstop" style="margin-top:8px">Остановить эффект</button>
-<label>Эффект «Дыхание» использует цвет с первой вкладки</label>
+<label style="text-transform:none;letter-spacing:0;font-weight:500">Эффект «Дыхание» использует цвет с первой вкладки</label>
 </div>
 
 <div id="t3" class="card hid">
-<audio id="audio" controls playsinline preload="auto"></audio>
-<canvas id="tmap" height="34"></canvas>
+<audio id="audio" playsinline preload="auto" class="hid"></audio>
+<div class="deck">
+  <div class="deck-info">
+    <div class="deck-title" id="pTitle">Трек не выбран</div>
+    <div class="deck-time" id="pTime">0:00 / 0:00</div>
+  </div>
+  <button class="alt" id="playBtn">Играть</button>
+</div>
+<canvas id="tmap" height="36"></canvas>
 <div class="pads">
 <button class="alt" id="padBuild">Разгон</button>
 <button class="alt" id="padFlash">Вспышка</button>
@@ -104,12 +184,11 @@ input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var
 <div class="subtabs" id="mtabs">
 <button data-mt="mt1" class="sel">Плейлист</button>
 <button data-mt="mt2" class="alt">Режимы и Соло</button>
-<button data-mt="mt3" class="alt">Звук и Ритм</button>
+<button data-mt="mt3" class="alt">Жанр и Ритм</button>
 </div>
 
 <div id="mt1">
-<label>Добавь музыку из «Файлов»: она сохранится вместе с картой дропов</label>
-<input type="file" id="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac,.aac" multiple>
+<label class="file-btn" style="margin-top:4px">Выбрать аудио из файлов<input type="file" id="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac,.aac" multiple></label>
 <div class="row"><button class="alt" id="prev">Пред</button><button class="alt" id="next">След</button><button class="alt" id="shuf">Случ</button><button class="sel" id="rep">Повт</button></div>
 <div id="lib"></div>
 </div>
@@ -117,7 +196,7 @@ input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var
 <div id="mt2" class="hid">
 <label>Режим светомузыки</label>
 <div class="grid">
-<button class="alt sel" data-m="auto">Авто-режиссёр</button>
+<button class="alt sel" data-m="auto">ИИ-Режиссёр</button>
 <button class="alt" data-m="virtuoso">Виртуоз</button>
 <button class="alt" data-m="spec">Частоты</button>
 <button class="alt" data-m="rgbbeat">RGB Бит</button>
@@ -128,7 +207,7 @@ input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var
 
 <label style="margin-top:12px">Палитра Виртуоза (основа + вокал)</label>
 <div class="row">
-<button class="alt sel" data-vpal="auto">Авто</button>
+<button class="alt sel" data-vpal="auto">Авто (ИИ)</button>
 <button class="alt" data-vpal="0">Рубин/Циан</button>
 <button class="alt" data-vpal="1">Индиго/Золото</button>
 <button class="alt" data-vpal="2">Изумруд/Неон</button>
@@ -161,12 +240,16 @@ input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var
 <label>Выкл = фоновый плеер при заблокированном экране, но без света</label>
 <button class="sel" id="amb" style="margin-top:8px">Подложка в тишине: вкл</button>
 
-<label style="margin-top:12px">Характер трека</label>
-<div class="row">
-<button class="alt sel" data-p="auto">Авто</button>
-<button class="alt" data-p="club">Бас/Клуб</button>
-<button class="alt" data-p="vocal">Вокал</button>
-<button class="alt" data-p="rock">Рок</button>
+<label style="margin-top:12px">База жанров (определяет цвета и характер ИИ)</label>
+<div class="grid4">
+<button class="alt sel" data-g="auto">Авто (ИИ)</button>
+<button class="alt" data-g="phonk">Фонк/Трэп</button>
+<button class="alt" data-g="edm">EDM/Хаус</button>
+<button class="alt" data-g="hiphop">Хип-Хоп</button>
+<button class="alt" data-g="pop">Поп/Вокал</button>
+<button class="alt" data-g="rock">Рок</button>
+<button class="alt" data-g="synth">Синтвейв</button>
+<button class="alt" data-g="lofi">Лоу-фай</button>
 </div>
 
 <label>Чувствительность: <span id="sv">100</span>%</label>
@@ -231,12 +314,19 @@ input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var
 
 <script>
 var werr=0,ch=null,color=[255,0,0],bright=100,fadeK=1,busy=false,pending=null,pendingPrio=false,mode=null,raf=0,lastSend=0,speed=5;
-var lastSentRGB=[-1,-1,-1];
+var lastSentRGB=[-1,-1,-1],lastGlowT=0;
 var st=document.getElementById('status');
 function $(i){return document.getElementById(i);}
 function errText(e){return 'Ошибка: '+((e&&(e.name||e.message))?((e.name||'')+' '+(e.message||'')).trim():String(e));}
 function saveCfg(k,v){try{localStorage.setItem('led-'+k,String(v));}catch(e){}}
 function loadCfg(k,d){try{var v=localStorage.getItem('led-'+k);return v===null?d:v;}catch(e){return d;}}
+
+function setLedGlow(r,g,b,force){
+  var now=performance.now();
+  if(!force&&now-lastGlowT<110)return;
+  lastGlowT=now;
+  document.documentElement.style.setProperty('--led',Math.round(r)+','+Math.round(g)+','+Math.round(b));
+}
 
 /* Умная очередь Bluetooth с приоритетом удара */
 function write(p,prio){
@@ -248,7 +338,7 @@ function write(p,prio){
   }
   busy=true;
   ch.writeValueWithoutResponse(new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]))
-  .catch(function(){werr++;$('ver').textContent='версия 23, ошибок записи: '+werr;})
+  .catch(function(){werr++;$('ver').textContent='версия 25 · сбоев: '+werr;})
   .then(function(){
     busy=false;
     if(pending){
@@ -265,12 +355,13 @@ function sendRGB(r,g,b,force,prio){
     if(mode==='music'){r=Math.min(210,r);g=Math.min(210,g);b=Math.min(180,b);}
   }
   var out=[r,g,b].map(function(v){return Math.max(0,Math.min(255,Math.round(v*fadeK)));});
+  if(out[0]+out[1]+out[2]>18)setLedGlow(out[0],out[1],out[2],force);
   if(!force&&out[0]===lastSentRGB[0]&&out[1]===lastSentRGB[1]&&out[2]===lastSentRGB[2])return;
   lastSentRGB=out;
   write(out,prio);
 }
 
-function sendStatic(force){var k=bright/100;sendRGB(color[0]*k,color[1]*k,color[2]*k,force,true);}
+function sendStatic(force){var k=bright/100;setLedGlow(color[0],color[1],color[2],true);sendRGB(color[0]*k,color[1]*k,color[2]*k,force,true);}
 function touch(){if(!timerEnd)fadeK=1;}
 function hex2rgb(h){return [parseInt(h.substr(1,2),16),parseInt(h.substr(3,2),16),parseInt(h.substr(5,2),16)];}
 function hsv(h,s,v){var f=function(n){var k=(n+h/60)%6;return v*(1-s*Math.max(0,Math.min(k,4-k,1)))*255;};return [f(5),f(3),f(1)];}
@@ -289,7 +380,7 @@ $('conn').onclick=function(){
   .then(function(s){return s.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');})
   .then(function(c){
     ch=c;busy=false;pending=null;pendingPrio=false;werr=0;lastSentRGB=[-1,-1,-1];
-    $('ver').textContent='версия 23';
+    $('ver').textContent='версия 25';
     st.textContent='Подключено';
     sendStatic(true);
   })
@@ -314,8 +405,15 @@ document.querySelectorAll('#mtabs button').forEach(function(b){
 });
 
 /* Цвет */
+function syncColorUI(hex){
+  var up=(hex||'#ff0000').toUpperCase();
+  $('colorHex').textContent=up;
+  document.querySelectorAll('#presets .sw').forEach(function(b){
+    b.classList.toggle('active',b.getAttribute('data-hex')===up);
+  });
+}
 function setBright(v){bright=v;$('bright').value=v;$('bv').textContent=v;}
-$('color').oninput=function(e){touch();setMode(null,true);color=hex2rgb(e.target.value);sendStatic(true);};
+$('color').oninput=function(e){touch();setMode(null,true);color=hex2rgb(e.target.value);syncColorUI(e.target.value);sendStatic(true);};
 $('bright').oninput=function(e){
   touch();
   var v=+e.target.value;
@@ -329,18 +427,11 @@ $('bright').oninput=function(e){
 $('on').onclick=function(){touch();setMode(null,true);setBright(Math.max(bright,10));sendStatic(true);};
 $('off').onclick=function(){setMode(null,true);sendRGB(0,0,0,true,true);};
 ['#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff','#ffffff'].forEach(function(h){
-  var b=document.createElement('button');b.className='sw';b.style.background=h;
-  b.onclick=function(){touch();setMode(null,true);$('color').value=h;color=hex2rgb(h);sendStatic(true);};
+  var b=document.createElement('button');b.className='sw';b.style.background=h;b.setAttribute('data-hex',h.toUpperCase());
+  b.onclick=function(){touch();setMode(null,true);$('color').value=h;color=hex2rgb(h);syncColorUI(h);sendStatic(true);};
   $('presets').appendChild(b);
 });
-
-/* Режимы анимации */
-function setMode(m,quiet){
-  mode=m;
-  if(m)wakeOn();else wakeOff();
-  cancelAnimationFrame(raf);
-  document.querySelectorAll('#fx button').forEach(function(b){b.className=(b.getAttribute('data-fx')===m)?'sel':'alt';});
-  if(m){
+syncColorUI('#FF0000');
     touch();
     if(m!=='music'&&m!=='ambient'&&audio&&!audio.paused)audio.pause();
     lastSentRGB=[-1,-1,-1];
@@ -409,12 +500,66 @@ FX.forEach(function(f){
   $('fx').appendChild(b);
 });
 $('fxstop').onclick=function(){setMode(null);};
-$('speed').oninput=function(e){speed=+e.target.value;};
+$('speed').oninput=function(e){speed=+e.target.value;$('spv').textContent=speed;};
 
 /* =====================================================================
-   ЕДИНЫЙ ДВИЖОК СВЕТОМУЗЫКИ: АНАЛИЗАТОР -> РЕЖИССЁР -> ПАЛИТРА (v23)
+   БАЗА ДАННЫХ ЖАНРОВ И ИИ-СВЕТОРЕЖИССЁР (v24)
    ===================================================================== */
-var audio=$('audio'),musicMode='auto',soloMode='all',trackProfile='auto',antiMud=true,vPalMode='auto';
+var GENRE_DB={
+  phonk:{
+    name:'Фонк/Трэп',
+    kw:['phonk','фонк','drift','дрифт','trap','трэп','808','memphis','kordhell','lxst','ghostface'],
+    bpm:125,bass:0.46,mid:0.30,high:0.24,crest:3.1,
+    mul:[1.18,0.95,1.05,1.10],rel:[110,115,68,105],
+    hues:[352,276,315],snare:[255,210,245],punch:1.35,glide:260
+  },
+  edm:{
+    name:'EDM/Хаус',
+    kw:['edm','house','хаус','techno','техно','trance','транс','club','клуб','remix','ремикс','electro','bass','dubstep','dnb','hardstyle'],
+    bpm:128,bass:0.42,mid:0.28,high:0.30,crest:2.8,
+    mul:[1.14,0.98,1.12,1.08],rel:[115,110,70,105],
+    hues:[192,318,228],snare:[235,250,255],punch:1.25,glide:280
+  },
+  hiphop:{
+    name:'Хип-Хоп',
+    kw:['hip','hop','rap','рэп','хип','хоп','beat','бит','drill','дрилл','freestyle','miya','скриптонит','oxxxy'],
+    bpm:94,bass:0.41,mid:0.39,high:0.20,crest:2.6,
+    mul:[1.12,1.14,0.98,1.06],rel:[130,135,80,115],
+    hues:[264,38,18],snare:[255,238,205],punch:1.15,glide:380
+  },
+  pop:{
+    name:'Поп/Вокал',
+    kw:['pop','поп','vocal','вокал','dance','танц','cover','кавер','acoustic','акуст','love','radio','hit'],
+    bpm:114,bass:0.30,mid:0.46,high:0.24,crest:2.2,
+    mul:[0.95,1.20,1.04,1.05],rel:[135,145,85,120],
+    hues:[342,178,28],snare:[255,244,228],punch:0.95,glide:460
+  },
+  rock:{
+    name:'Рок',
+    kw:['rock','рок','metal','метал','punk','панк','guitar','гитар','grunge','альтер','кино','король'],
+    bpm:132,bass:0.31,mid:0.41,high:0.28,crest:2.7,
+    mul:[1.06,1.12,1.15,1.08],rel:[115,115,72,108],
+    hues:[10,44,212],snare:[255,248,232],punch:1.20,glide:300
+  },
+  synth:{
+    name:'Синтвейв',
+    kw:['synth','синт','wave','вейв','retro','ретро','cyber','кибер','outrun','80s','night','ночь','kavinsky'],
+    bpm:108,bass:0.35,mid:0.37,high:0.28,crest:2.3,
+    mul:[1.05,1.10,1.08,1.05],rel:[140,145,88,125],
+    hues:[326,186,250],snare:[240,220,255],punch:1.00,glide:520
+  },
+  lofi:{
+    name:'Лоу-фай',
+    kw:['lofi','lo-fi','лоу','chill','чилл','ambient','эмбиент','sleep','сон','piano','пиано','jazz','джаз','relax'],
+    bpm:82,bass:0.32,mid:0.48,high:0.20,crest:1.9,
+    mul:[0.92,1.16,0.92,1.00],rel:[165,175,110,150],
+    hues:[32,164,344],snare:[255,232,195],punch:0.75,glide:680
+  }
+};
+var GENRE_KEYS=['phonk','edm','hiphop','pop','rock','synth','lofi'];
+
+var audio=$('audio'),musicMode='auto',soloMode='all',trackGenre='auto',antiMud=true,vPalMode='auto';
+var detectedGenre='pop',fileHintGenre='',lastGenreEval=0;
 var actx=null,anFile=null,dly=null,freqFloat=null,timeFloat=null;
 var envPeak=[0.14,0.11,0.09,0.14],sm=[0,0,0,0],prevLin=[0,0,0,0],fluxAvg=[0.02,0.02,0.02,0.02];
 var mudFloor=[0,0,0],mudCut=0,lastMudHit=0;
@@ -423,19 +568,51 @@ var lastBandBeat=[0,0,0],bandFlash=[0,0,0],lastT=0,srcBand=0;
 var ambOn=true,ambMix=0,rawBeats=[],lastRawBeat=0;
 var beatIntervals=[],estBpm=0,beatPeriod=500,beatPhase=0,barBeat=0;
 var vocalEnv=0,snareFlash=0,lastSnare=0;
+var aiHue=342,aiTargetHue=342,aiVal=0,aiSpark=0;
 var vBaseHue=352,vVocalHue=188,vTargetBase=352,vTargetVocal=188,vSpark=0,lastPalShift=0;
 var shortEnergy=0,longEnergy=0,dropBoost=0,lastTeleT=0;
 var styleStats={bass:0,mid:0,high:0,crest:0};
 var activeMap=null,scanBusy=false;
 var pads={build:false,flash:false,drop:false,buildAmt:0,flashAmt:0};
 
-/* Концертные гармонические пары для Виртуоза [основа/бас, вокал/мелодия] */
 var VIRTUOSO_PALETTES=[
-  [352,188], /* Рубин / Электрик Циан */
-  [256,38],  /* Королевский Индиго / Тёплое Золото */
-  [148,318], /* Глубокий Изумруд / Неоновая Маджента */
-  [215,16]   /* Кобальт / Тёплый Коралл */
+  [352,188],
+  [256,38],
+  [148,318],
+  [215,16]
 ];
+
+function detectFileHint(name){
+  var low=(name||'').toLowerCase();
+  for(var i=0;i<GENRE_KEYS.length;i++){
+    var gk=GENRE_KEYS[i],kws=GENRE_DB[gk].kw;
+    for(var j=0;j<kws.length;j++){
+      if(low.indexOf(kws[j])!==-1)return gk;
+    }
+  }
+  return '';
+}
+
+function classifyGenreByFeatures(bRatio,mRatio,hRatio,crest,bpmVal,hintKey){
+  var bestKey='pop',bestScore=999;
+  for(var i=0;i<GENRE_KEYS.length;i++){
+    var k=GENRE_KEYS[i],g=GENRE_DB[k];
+    var dB=(bRatio-g.bass)*2.4;
+    var dM=(mRatio-g.mid)*2.1;
+    var dH=(hRatio-g.high)*2.0;
+    var dC=(crest-g.crest)*0.32;
+    var dT=bpmVal>40?((bpmVal-g.bpm)/55):0;
+    var dist=dB*dB+dM*dM+dH*dH+dC*dC+dT*dT;
+    if(hintKey===k)dist*=0.45;
+    if(dist<bestScore){bestScore=dist;bestKey=k;}
+  }
+  return bestKey;
+}
+
+function getActiveGenre(){
+  var key=(trackGenre!=='auto')?trackGenre:detectedGenre;
+  return GENRE_DB[key]||GENRE_DB.pop;
+}
 
 function clearMeterUI(){
   for(var i=1;i<=3;i++){
@@ -449,10 +626,13 @@ function resetAudioStats(){
   sm=[0,0,0,0];prevLin=[0,0,0,0];fluxAvg=[0.02,0.02,0.02,0.02];
   mudFloor=[0,0,0];mudCut=0;lastMudHit=0;
   bandFlash=[0,0,0];flash=0;
-  vocalEnv=0;snareFlash=0;lastSnare=0;vSpark=0;
+  vocalEnv=0;snareFlash=0;lastSnare=0;vSpark=0;aiSpark=0;aiVal=0;
   rawBeats=[];beatIntervals=[];estBpm=0;beatPeriod=500;beatPhase=0;barBeat=0;lastRawBeat=0;
   shortEnergy=0;longEnergy=0;dropBoost=0;
   styleStats={bass:0,mid:0,high:0,crest:0};
+  lastGenreEval=0;
+  if(activeMap&&activeMap.genre)detectedGenre=activeMap.genre;
+  else if(fileHintGenre)detectedGenre=fileHintGenre;
   clearMeterUI();
 }
 
@@ -532,14 +712,6 @@ function detectPitchHue(binHz){
   return (Math.atan2(vy,vx)*57.2957795+360)%360;
 }
 
-function getEffectiveProfile(){
-  if(trackProfile!=='auto')return trackProfile;
-  if(styleStats.bass>styleStats.mid*1.25&&styleStats.crest>2.2)return 'club';
-  if(styleStats.mid>styleStats.bass*1.02&&styleStats.mid>styleStats.high*1.25)return 'vocal';
-  return 'rock';
-}
-
-function profileLabel(p){return p==='club'?'Бас/Клуб':(p==='vocal'?'Вокал':'Рок');}
 function sceneLabel(st){return st===3?'Дроп':(st===2?'Разгон':(st===0?'Яма':'Куплет'));}
 
 function getMapState(){
@@ -549,7 +721,7 @@ function getMapState(){
   return activeMap.states[idx];
 }
 
-/* --- СЛОЙ 1: АНАЛИЗАТОР (Analyzer: Бочка / Снэр / Вокал / Ритм-сетка) --- */
+/* --- СЛОЙ 1: АНАЛИЗАТОР И КЛАССИФИКАТОР ЖАНРОВ --- */
 function runAnalyzer(t,dt){
   if(!anFile||!freqFloat||!timeFloat)return null;
   anFile.getFloatFrequencyData(freqFloat);
@@ -595,15 +767,27 @@ function runAnalyzer(t,dt){
   var raw=[rawBass,rawMid,rawHigh,rawAll];
   var dbs=[bRes.db,mRes.db,hRes.db];
 
-  var stAlpha=1-Math.exp(-dt/2400);
+  /* Накопление акустической сигнатуры для базы жанров */
+  var stAlpha=1-Math.exp(-dt/2200);
   styleStats.bass=styleStats.bass*(1-stAlpha)+rawBass*stAlpha;
   styleStats.mid=styleStats.mid*(1-stAlpha)+rawMid*stAlpha;
   styleStats.high=styleStats.high*(1-stAlpha)+rawHigh*stAlpha;
   styleStats.crest=styleStats.crest*(1-stAlpha)+crest*stAlpha;
 
-  var prof=getEffectiveProfile();
-  var profMul=(prof==='club')?[1.16,0.96,1.02,1.08]:(prof==='vocal')?[0.90,1.20,1.05,1.06]:[1.06,1.08,1.10,1.06];
-  var relTimes=(prof==='club')?[115,115,72,105]:(prof==='vocal')?[140,145,85,125]:[125,120,78,110];
+  if(trackGenre==='auto'&&t-lastGenreEval>1600){
+    lastGenreEval=t;
+    var sumSpec=styleStats.bass+styleStats.mid+styleStats.high;
+    if(sumSpec>0.04){
+      var bR=styleStats.bass/sumSpec;
+      var mR=styleStats.mid/sumSpec;
+      var hR=styleStats.high/sumSpec;
+      detectedGenre=classifyGenreByFeatures(bR,mR,hR,styleStats.crest,estBpm,fileHintGenre);
+    }
+  }
+
+  var genreObj=getActiveGenre();
+  var profMul=genreObj.mul;
+  var relTimes=genreObj.rel;
 
   var gain=($('sens').value/100);
   var lvl=[],led=[],flux=[],i;
@@ -631,7 +815,6 @@ function runAnalyzer(t,dt){
     fluxAvg[i]=fluxAvg[i]*(1-flAlpha)+flux[i]*flAlpha;
   }
 
-  /* Разделение певучего вокала (sustain > 70 мс) и короткого удара снэра */
   var vAtt=1-Math.exp(-dt/72);
   var vRel=1-Math.exp(-dt/195);
   vocalEnv+=(led[1]-vocalEnv)*(led[1]>vocalEnv?vAtt:vRel);
@@ -645,7 +828,6 @@ function runAnalyzer(t,dt){
   }
   snareFlash*=Math.exp(-dt/95);
 
-  /* Соло-фильтры инструментов */
   if(soloMode==='vocal'){
     led[0]*=0.05;led[2]*=0.14;led[1]=Math.min(1,vocalEnv*1.25);
     flux[0]*=0.1;flux[2]*=0.15;snareFlash=0;
@@ -657,7 +839,6 @@ function runAnalyzer(t,dt){
     flux[0]*=0.1;
   }
 
-  /* Анти-каша: вырезает только лёгкую паузу глубины (не в ноль, чтобы не стробило) */
   if(antiMud){
     var mAtt=1-Math.exp(-dt/550);
     var mRel=1-Math.exp(-dt/180);
@@ -676,7 +857,6 @@ function runAnalyzer(t,dt){
     mudCut=0;
   }
 
-  /* Детектор ударов + фазовая сетка такта (1-2-3-4-5-6-7-8) */
   var beatScore=flux[0]*0.64+flux[3]*0.36+transientKick*0.24;
   var thrAny=Math.max(0.046,fluxAvg[3]*1.36);
   var isBeat=false;
@@ -719,34 +899,112 @@ function runAnalyzer(t,dt){
     lvl:lvl,led:led,flux:flux,dbs:dbs,transient:transientKick,
     vocalEnv:vocalEnv,snareFlash:snareFlash,isSnare:isSnare,
     groovePulse:groovePulse,beatPhase:beatPhase,barBeat:barBeat,
-    binHz:binHz,curE:curE,isBeat:isBeat,mapState:mapSt,prof:prof
+    binHz:binHz,curE:curE,isBeat:isBeat,mapState:mapSt,genre:genreObj
   };
 }
 
-/* --- СЛОЙ 2: РЕЖИССЁР (Director: понятная музыкальная драматургия) --- */
+/* --- СЛОЙ 2: ИИ-РЕЖИССЁР И УНИКАЛЬНАЯ ФИЗИКА 7 РЕЖИМОВ --- */
 function updateVirtuosoPalette(sig,t,dt){
   var pair=VIRTUOSO_PALETTES[0];
   if(vPalMode!=='auto'){
     pair=VIRTUOSO_PALETTES[+vPalMode]||VIRTUOSO_PALETTES[0];
     vTargetBase=pair[0];
     vTargetVocal=pair[1];
-  }else if(t-lastPalShift>4500||sig.mapState===3){
-    var noteHue=detectPitchHue(sig.binHz);
-    if(noteHue>=0){
-      var idx=Math.floor(((noteHue+45)%360)/90)%VIRTUOSO_PALETTES.length;
-      pair=VIRTUOSO_PALETTES[idx];
-      if(pair[0]!==vTargetBase){
-        vTargetBase=pair[0];
-        vTargetVocal=pair[1];
+  }else{
+    /* В авто-режиме берёт цвета из базы жанра с тонкой гармонической подстройкой */
+    vTargetBase=sig.genre.hues[0];
+    vTargetVocal=sig.genre.hues[1];
+    if(t-lastPalShift>3600){
+      var noteHue=detectPitchHue(sig.binHz);
+      if(noteHue>=0){
         lastPalShift=t;
+        var shift=((noteHue-180)/180)*18;
+        vTargetVocal=(sig.genre.hues[1]+shift+360)%360;
       }
     }
   }
   var bDiff=((vTargetBase-vBaseHue+540)%360)-180;
   var vDiff=((vTargetVocal-vVocalHue+540)%360)-180;
-  var glide=1-Math.exp(-dt/420);
+  var glide=1-Math.exp(-dt/380);
   vBaseHue=(vBaseHue+bDiff*glide+360)%360;
   vVocalHue=(vVocalHue+vDiff*glide+360)%360;
+}
+
+function runAiDirector(sig,t,dt){
+  var g=sig.genre,led=sig.led,lvl=sig.lvl,flux=sig.flux;
+  var ms=sig.mapState;
+  var isDrop=(ms===3||dropBoost>0.12);
+  var isBuild=(ms===2);
+  var isBreak=(ms===0||sig.curE<0.16);
+
+  /* Выбор целевого оттенка ИИ на основе жанра, фразы такта, вокала и яркости тембра */
+  var baseH=g.hues[0],vocH=g.hues[1],accH=g.hues[2];
+  var barHalf=Math.floor(sig.barBeat/4);
+  var tempShift=(led[2]-led[0])*22;
+
+  if(isBreak){
+    /* Яма: медленный перелив между вокальным и акцентным оттенком жанра */
+    var wave=(Math.sin(t*0.0018)+1)/2;
+    aiTargetHue=(vocH+(accH-vocH)*wave+360)%360;
+  }else if(isBuild){
+    /* Разгон: движение от вокального оттенка к акцентному цвету дропа */
+    aiTargetHue=(vocH+(accH-vocH)*Math.min(1,0.35+sig.beatPhase*0.5)+360)%360;
+  }else if(isDrop){
+    /* Дроп: чередование основного и акцентного цвета по тактам и долям */
+    aiTargetHue=(sig.barBeat%2===0)?baseH:accH;
+  }else{
+    /* Куплет: бас держит корневой цвет, голос переводит в мелодический */
+    var vWeight=Math.max(0,Math.min(1,sig.vocalEnv*1.35-led[0]*0.3));
+    var hSpan=((vocH-baseH+540)%360)-180;
+    aiTargetHue=(baseH+hSpan*vWeight+(barHalf?12:-12)+tempShift+360)%360;
+  }
+
+  if(soloMode==='kick')aiTargetHue=baseH;
+  else if(soloMode==='vocal'||soloMode==='melody')aiTargetHue=vocH;
+
+  var hDiff=((aiTargetHue-aiHue+540)%360)-180;
+  var glideMs=isDrop?110:(isBreak?650:g.glide);
+  aiHue=(aiHue+hDiff*(1-Math.exp(-dt/glideMs))+360)%360;
+
+  /* Расчёт яркости и контраста под конкретный жанр и сцену */
+  var targetVal=0;
+  if(isBreak){
+    targetVal=0.14+0.34*Math.max(sig.vocalEnv,led[0]*0.7);
+  }else if(isBuild){
+    var ramp=0.25+0.75*Math.max(sig.groovePulse,sig.vocalEnv);
+    targetVal=Math.min(1,ramp);
+  }else if(isDrop){
+    var dropHit=Math.max(led[0]*(0.45+0.55*sig.groovePulse),sig.vocalEnv*0.85);
+    targetVal=Math.min(1,(0.06+0.94*dropHit)*g.punch);
+  }else{
+    var verseHit=Math.max(led[0]*0.85,sig.vocalEnv*0.92,led[2]*0.45);
+    targetVal=Math.min(1,(0.04+0.96*verseHit)*(0.85+g.punch*0.15));
+  }
+
+  if(mudCut>0&&!isBreak)targetVal*=0.38;
+  var vRate=targetVal>aiVal?14:g.rel[3];
+  aiVal+=(targetVal-aiVal)*(1-Math.exp(-dt/vRate));
+
+  var sat=isDrop?1.0:(isBreak?0.84:0.94);
+  var outRgb=hsv(aiHue,sat,Math.min(1,aiVal));
+
+  /* Жанровый снэр-акцент */
+  if(sig.snareFlash>0.14&&soloMode!=='kick'&&!isBreak){
+    var snMix=sig.snareFlash*(isDrop?0.65:0.42);
+    outRgb=mixRgb(outRgb,g.snare,snMix);
+  }
+
+  /* Искры на высоких частотах */
+  if(flux[2]>0.062&&lvl[2]>0.22){
+    aiSpark=Math.min(1,aiSpark+flux[2]*(isDrop?1.6:1.0));
+  }
+  aiSpark*=Math.exp(-dt/75);
+  if(aiSpark>0.08){
+    var sp=aiSpark*(isDrop?110:65);
+    outRgb=[Math.min(255,outRgb[0]+sp*0.8),Math.min(255,outRgb[1]+sp*0.9),Math.min(255,outRgb[2]+sp)];
+  }
+
+  return {rgb:outRgb,prio:sig.isBeat||sig.isSnare,allowAmb:true};
 }
 
 function runDirector(sig,t,dt){
@@ -759,7 +1017,7 @@ function runDirector(sig,t,dt){
     pads.buildAmt=Math.min(1,pads.buildAmt+dt/2200);
     var rate=6+pads.buildAmt*16;
     var wave=(Math.sin(t*0.00628*rate)+1)/2;
-    var bHue=(vBaseHue+pads.buildAmt*140)%360;
+    var bHue=(aiHue+pads.buildAmt*140)%360;
     return {rgb:hsv(bHue,0.85,0.25+0.75*wave),prio:wave>0.85,allowAmb:false};
   }else{
     pads.buildAmt=0;
@@ -771,111 +1029,83 @@ function runDirector(sig,t,dt){
     return {rgb:[255*fMix,245*fMix,255*fMix],prio:fMix>0.8,allowAmb:false};
   }
 
-  /* Определение активного сценария для Авто-режиссёра */
-  var activeMode=musicMode;
+  /* 1. ИИ-РЕЖИССЁР (Жанровая база + структура трека + гармония) */
   if(musicMode==='auto'){
-    var ms=sig.mapState;
-    if(ms===3||dropBoost>0.12)activeMode='virtuoso';
-    else if(ms===2)activeMode='buildup_auto';
-    else if(ms===0)activeMode='pulse';
-    else activeMode='spec';
+    return runAiDirector(sig,t,dt);
   }
 
-  /* Сцена разгона в Авто-режиссёре */
-  if(activeMode==='buildup_auto'){
+  /* 2. ВИРТУОЗ: Контрастная перекличка 2 линий (Бас против Вокала + Снэр-прожектор) */
+  if(musicMode==='virtuoso'){
     updateVirtuosoPalette(sig,t,dt);
-    var bMix=Math.min(1,sig.vocalEnv*0.8+sig.beatPhase*0.3);
-    var bCol=mixRgb(hsv(vBaseHue,1,1),hsv(vVocalHue,1,1),bMix);
-    var bBright=Math.min(1,0.14+0.86*Math.max(led[0],led[1],sig.groovePulse*0.7));
-    return {rgb:[bCol[0]*bBright,bCol[1]*bBright,bCol[2]*bBright],prio:sig.isBeat,allowAmb:true};
-  }
+    var isVocTurn=(sig.vocalEnv>led[0]*0.92&&sig.vocalEnv>0.18);
+    if(dropBoost>0.08&&sig.barBeat%2===1&&sig.vocalEnv>0.12)isVocTurn=true;
+    if(soloMode==='kick')isVocTurn=false;
+    else if(soloMode==='vocal'||soloMode==='melody')isVocTurn=true;
 
-  /* 1. ВИРТУОЗ: Концертный светорежиссёр (Гармоническая пара + Вокальный перелив + Снэр-акцент) */
-  if(activeMode==='virtuoso'){
-    updateVirtuosoPalette(sig,t,dt);
+    var activeHue=isVocTurn?vVocalHue:vBaseHue;
+    var lineEnergy=isVocTurn?(sig.vocalEnv*1.05):(led[0]*(0.5+0.5*sig.groovePulse));
+    var vVal=Math.min(1,0.03+lineEnergy*0.97+dropBoost*0.25);
+    if(mudCut>0)vVal*=0.22;
 
-    /* Определяем баланс между фундаментом (Бас/Ритм) и мелодией (Вокал) */
-    var vocalDom=Math.max(0,Math.min(1,(sig.vocalEnv*1.25-led[0]*0.35)));
-    /* На дропах нечётные доли (1,3,5,7) отдают акцент основе, чётные (2,4,6,8) — вокальной линии */
-    if(dropBoost>0.08&&sig.barBeat%2===1)vocalDom=Math.max(vocalDom,0.68);
-    if(soloMode==='kick')vocalDom=0;
-    else if(soloMode==='vocal'||soloMode==='melody')vocalDom=1;
-
-    var baseCol=hsv(vBaseHue,1,1);
-    var vocCol=hsv(vVocalHue,1,1);
-    var mainCol=mixRgb(baseCol,vocCol,vocalDom);
-
-    /* Динамика яркости: удар бочки (groovePulse) + певучесть голоса (vocalEnv) */
-    var grooveEnergy=led[0]*(0.55+0.45*sig.groovePulse);
-    var voiceEnergy=sig.vocalEnv*0.88;
-    var energy=Math.min(1,Math.max(grooveEnergy,voiceEnergy)+dropBoost*0.45);
-    var val=Math.min(1,0.04+energy*0.96);
-    if(mudCut>0)val*=0.42;
-
-    var outRgb=[mainCol[0]*val,mainCol[1]*val,mainCol[2]*val];
-
-    /* Чёткий акцент на снэре / хлопке (2 и 4 доля) */
-    if(sig.snareFlash>0.12&&soloMode!=='kick'){
-      var sn=sig.snareFlash*(dropBoost>0.08?0.62:0.42);
-      outRgb=mixRgb(outRgb,[255,244,225],sn);
+    var vRgb=hsv(activeHue,1,vVal);
+    if(sig.snareFlash>0.14&&soloMode!=='kick'){
+      vRgb=mixRgb(vRgb,[255,246,230],sig.snareFlash*0.65);
     }
-
-    /* Тонкие искры на тарелках и хай-хэтах */
-    if(flux[2]>0.065&&lvl[2]>0.24)vSpark=Math.min(1,vSpark+flux[2]*1.4);
-    vSpark*=Math.exp(-dt/75);
+    if(flux[2]>0.068&&lvl[2]>0.25)vSpark=Math.min(1,vSpark+flux[2]*1.5);
+    vSpark*=Math.exp(-dt/70);
     if(vSpark>0.1){
-      var sp=vSpark*95;
-      outRgb=[Math.min(255,outRgb[0]+sp*0.7),Math.min(255,outRgb[1]+sp*0.85),Math.min(255,outRgb[2]+sp)];
+      var sp=vSpark*100;
+      vRgb=[Math.min(255,vRgb[0]+sp*0.75),Math.min(255,vRgb[1]+sp*0.88),Math.min(255,vRgb[2]+sp)];
     }
-
-    return {rgb:outRgb,prio:sig.isBeat||sig.isSnare,allowAmb:true};
+    return {rgb:vRgb,prio:sig.isBeat||sig.isSnare,allowAmb:true};
   }
 
   var mudScale=(mudCut>0)?0.35:1;
 
-  /* 2. Частоты (Красный бас, Зелёный голос, Синий верх) */
-  if(activeMode==='spec'){
+  /* 3. ЧАСТОТЫ: Классическая 3-канальная цветомузыка (R=Бас, G=Голос, B=Верх) */
+  if(musicMode==='spec'){
     var boost=(1+dropBoost)*mudScale;
     return {rgb:[led[0]*255*boost,led[1]*255*boost,led[2]*255*boost],prio:sig.isBeat,allowAmb:true};
   }
 
-  /* 3. RGB Бит */
-  if(activeMode==='rgbbeat'){
-    var bRels=[145,115,72],bGates=[0.046,0.044,0.050],anyHit=false,i;
+  /* 4. RGB БИТ: Только ударные импульсы с быстрым затуханием в темноту */
+  if(musicMode==='rgbbeat'){
+    var bRels=[115,95,58],bGates=[0.044,0.042,0.048],anyHit=false,i;
     for(i=0;i<3;i++){
-      var flVal=flux[i]+(i===0?sig.transient*0.20:0);
-      var thrI=Math.max(bGates[i],fluxAvg[i]*1.40);
-      if(lvl[i]>0.17&&flVal>thrI&&t-lastBandBeat[i]>125){
+      var flVal=flux[i]+(i===0?sig.transient*0.22:0);
+      var thrI=Math.max(bGates[i],fluxAvg[i]*1.38);
+      if(lvl[i]>0.16&&flVal>thrI&&t-lastBandBeat[i]>115){
         lastBandBeat[i]=t;
-        bandFlash[i]=Math.min(1,0.76+lvl[i]*0.34);
+        bandFlash[i]=Math.min(1,0.82+lvl[i]*0.28);
         anyHit=true;
       }
       bandFlash[i]=Math.max(0,bandFlash[i]*Math.exp(-dt/bRels[i]));
     }
-    return {rgb:[bandFlash[0]*255*mudScale,bandFlash[1]*255*mudScale,bandFlash[2]*255*mudScale],prio:anyHit,allowAmb:true};
+    return {rgb:[bandFlash[0]*255*mudScale,bandFlash[1]*255*mudScale,bandFlash[2]*255*mudScale],prio:anyHit,allowAmb:false};
   }
 
-  /* 4. Пульс */
-  if(activeMode==='pulse'){
-    var kp=Math.min(1,0.03+0.97*led[s]*(1+dropBoost*0.6))*mudScale;
-    return {rgb:[color[0]*kp,color[1]*kp,color[2]*kp],prio:sig.isBeat,allowAmb:true};
+  /* 5. ПУЛЬС: Плавное дыхание выбранным цветом с 1-й вкладки */
+  if(musicMode==='pulse'){
+    var kp=Math.min(1,0.04+0.96*led[s]*(1+dropBoost*0.45));
+    return {rgb:[color[0]*kp,color[1]*kp,color[2]*kp],prio:false,allowAmb:true};
   }
 
-  /* 5. Радуга */
-  if(activeMode==='rain'){
-    hue=(hue+dt*0.028*(0.2+led[s]*2.6))%360;
-    return {rgb:hsv(hue,1,Math.min(1,0.05+0.95*led[s])*mudScale),prio:false,allowAmb:true};
+  /* 6. БИТ: Клубный строб-шагомер со сменой цвета на каждом ударе и паузой темноты */
+  if(musicMode==='beat'){
+    var thr=Math.max(0.046,fluxAvg[s]*1.36);
+    var flB=flux[s]+(s===0||s===3?sig.transient*0.22:0);
+    var bHit=false;
+    if(lvl[s]>0.18&&flB>thr&&t-lastBeat>160){
+      lastBeat=t;bHit=true;hue=(hue+105)%360;flash=1;
+    }
+    flash=Math.max(0,flash*Math.exp(-dt/125));
+    return {rgb:hsv(hue,1,flash*mudScale),prio:bHit,allowAmb:false};
   }
 
-  /* 6. Бит */
-  var thr=Math.max(0.048,fluxAvg[s]*1.38);
-  var flB=flux[s]+(s===0||s===3?sig.transient*0.20:0);
-  var bHit=false;
-  if(lvl[s]>0.19&&flB>thr&&t-lastBeat>165){
-    lastBeat=t;bHit=true;hue=(hue+53)%360;flash=1;
-  }
-  flash=Math.max(0,flash*Math.exp(-dt/175));
-  return {rgb:hsv(hue,1,flash*mudScale),prio:bHit,allowAmb:true};
+  /* 7. РАДУГА: Непрерывный жидкий поток цвета без резких отключений */
+  hue=(hue+dt*(0.022+led[s]*0.14))%360;
+  var rVal=Math.min(1,0.28+0.72*led[s]);
+  return {rgb:hsv(hue,0.95,rVal),prio:false,allowAmb:true};
 }
 
 /* --- СЛОЙ 3: ПАЛИТРА И ВЫВОД (Palette) --- */
@@ -891,7 +1121,7 @@ function enhanceContrast(r,g,b){
 
 function runPalette(dirOut,sig,t,dt){
   var rgb=dirOut.rgb;
-  if(musicMode==='spec'||musicMode==='rgbbeat'||(musicMode==='auto'&&sig.mapState!==3&&sig.mapState!==2&&sig.mapState!==0)){
+  if(musicMode==='spec'||musicMode==='rgbbeat'){
     rgb=enhanceContrast(rgb[0],rgb[1],rgb[2]);
   }
   var targetAmb=(dirOut.allowAmb&&ambOn&&sig.curE<0.11)?Math.min(1,(0.11-sig.curE)/0.08):0;
@@ -928,7 +1158,7 @@ function runMusicPipeline(t){
     var bpmTxt=estBpm?(estBpm+' BPM · '):'';
     var scTxt=(sig.mapState>=0)?(' · '+sceneLabel(sig.mapState)):'';
     var pTxt=scanBusy?' · Анализ трека...':scTxt;
-    $('tele').textContent=bpmTxt+profileLabel(sig.prof)+' · '+roleTxt+pTxt;
+    $('tele').textContent=bpmTxt+sig.genre.name+' · '+roleTxt+pTxt;
   }
 
   var dirOut=runDirector(sig,t,dt);
@@ -936,7 +1166,7 @@ function runMusicPipeline(t){
 }
 
 /* =====================================================================
-   ПРЕД-АНАЛИЗ ТРЕКА НАПЕРЁД И КАРТА ДРОПОВ
+   ПРЕД-АНАЛИЗ ТРЕКА НАПЕРЁД, ОПРЕДЕЛЕНИЕ ЖАНРА И КАРТА ДРОПОВ
    ===================================================================== */
 function readBlobBuffer(blob){
   if(blob.arrayBuffer)return blob.arrayBuffer();
@@ -955,20 +1185,37 @@ function preAnalyzeTrack(trackObj,preloadedAb){
     var ch0=buf.getChannelData(0);
     var ch1=buf.numberOfChannels>1?buf.getChannelData(1):null;
     var N=120,len=ch0.length,step=Math.max(1,Math.floor(len/N));
-    var rms=[],bass=[],i,j,s,lp=0,sumSq,bSq,cnt;
+    var rms=[],bass=[],i,j,s,lp=0,hpPrev=0,sumSq,bSq,hSq,peakAll=0,rmsAll=0,bAll=0,hAll=0,cnt;
     for(i=0;i<N;i++){
-      sumSq=0;bSq=0;cnt=0;
+      sumSq=0;bSq=0;hSq=0;cnt=0;
       var end=Math.min(len,(i+1)*step);
       for(j=i*step;j<end;j+=2){
         s=ch1?(ch0[j]+ch1[j])*0.5:ch0[j];
+        var aS=Math.abs(s);
+        if(aS>peakAll)peakAll=aS;
         lp+=0.08*(s-lp);
+        var hp=s-hpPrev;hpPrev=s;
         sumSq+=s*s;
         bSq+=lp*lp;
+        hSq+=hp*hp;
         cnt++;
       }
-      rms.push(Math.sqrt(sumSq/Math.max(1,cnt)));
-      bass.push(Math.sqrt(bSq/Math.max(1,cnt)));
+      var rSeg=Math.sqrt(sumSq/Math.max(1,cnt));
+      var bSeg=Math.sqrt(bSq/Math.max(1,cnt));
+      var hSeg=Math.sqrt(hSq/Math.max(1,cnt));
+      rms.push(rSeg);
+      bass.push(bSeg);
+      rmsAll+=rSeg;bAll+=bSeg;hAll+=hSeg;
     }
+    var avgRms=Math.max(0.001,rmsAll/N);
+    var bRatio=Math.min(1,(bAll/N)/avgRms);
+    var hRatio=Math.min(1,(hAll/N)/(avgRms*1.2));
+    var mRatio=Math.max(0.1,1-bRatio*0.5-hRatio*0.5);
+    var sumRat=bRatio+mRatio+hRatio;
+    var crestEst=Math.min(4.2,Math.max(1.6,peakAll/avgRms*0.65));
+    var hint=detectFileHint(trackObj.name);
+    var gKey=classifyGenreByFeatures(bRatio/sumRat,mRatio/sumRat,hRatio/sumRat,crestEst,0,hint);
+
     var sRms=rms.slice().sort(function(a,b){return a-b;});
     var sBass=bass.slice().sort(function(a,b){return a-b;});
     var p95R=Math.max(0.01,sRms[Math.floor(N*0.95)]);
@@ -984,10 +1231,11 @@ function preAnalyzeTrack(trackObj,preloadedAb){
       else if(i>2&&nr>rms[i-1]/p95R*1.06&&nr>0.36)states.push(2);
       else states.push(1);
     }
-    var mapData={dur:buf.duration,bins:bins,states:states};
+    var mapData={dur:buf.duration,bins:bins,states:states,genre:gKey};
     trackObj.map=mapData;
     if(cur>=0&&tracks[cur]&&tracks[cur].id===trackObj.id){
       activeMap=mapData;
+      if(trackGenre==='auto')detectedGenre=gKey;
       drawTrackMap();
     }
     saveTrackMeta(trackObj);
@@ -1070,11 +1318,11 @@ bindPad('padDrop',
 );
 
 /* =====================================================================
-   УПРАВЛЕНИЕ РЕЖИМАМИ, СОЛО И ПАМЯТЬЮ ТРЕКОВ В INDEXEDDB
+   УПРАВЛЕНИЕ РЕЖИМАМИ, СОЛО, БАЗОЙ ЖАНРОВ И ПАМЯТЬЮ ТРЕКОВ
    ===================================================================== */
 function persistTrackPrefs(){
   if(cur<0||!tracks[cur])return;
-  tracks[cur].cfg={mmode:musicMode,solo:soloMode,prof:trackProfile,mud:antiMud?1:0,vpal:vPalMode};
+  tracks[cur].cfg={mmode:musicMode,solo:soloMode,genre:trackGenre,mud:antiMud?1:0,vpal:vPalMode};
   saveTrackMeta(tracks[cur]);
 }
 
@@ -1123,14 +1371,14 @@ function setAntiMud(v,skipSave){
 }
 $('mud').onclick=function(){setAntiMud(!antiMud);};
 
-function setProfile(p,skipSave){
-  trackProfile=p;
-  saveCfg('prof',p);
-  document.querySelectorAll('[data-p]').forEach(function(x){x.className=(x.getAttribute('data-p')===p)?'alt sel':'alt';});
+function setGenreMode(g,skipSave){
+  trackGenre=g;
+  saveCfg('genre',g);
+  document.querySelectorAll('[data-g]').forEach(function(x){x.className=(x.getAttribute('data-g')===g)?'alt sel':'alt';});
   if(!skipSave)persistTrackPrefs();
 }
-document.querySelectorAll('[data-p]').forEach(function(b){
-  b.onclick=function(){setProfile(b.getAttribute('data-p'));};
+document.querySelectorAll('[data-g]').forEach(function(b){
+  b.onclick=function(){setGenreMode(b.getAttribute('data-g'));};
 });
 
 function setSrcBand(s){
@@ -1143,13 +1391,33 @@ document.querySelectorAll('[data-s]').forEach(function(b){
 });
 
 var lightOn=true,shuffle=false,repeatAll=true,recreating=false,curBlobUrl=null;
+function syncDeckUI(){
+  var playing=audio&&!audio.paused&&!!audio.src;
+  $('playBtn').textContent=playing?'Пауза':'Играть';
+  $('playBtn').className=playing?'sel':'alt';
+  var curT=(audio&&isFinite(audio.currentTime))?fmtDur(audio.currentTime):'0:00';
+  var durT=(audio&&isFinite(audio.duration)&&audio.duration>0)?fmtDur(audio.duration):'0:00';
+  $('pTime').textContent=curT+' / '+durT;
+}
+$('playBtn').onclick=function(){
+  if(!audio.src){
+    if(tracks.length){if(lightOn)initAudio();playIndex(0);}
+    return;
+  }
+  if(audio.paused){if(lightOn)initAudio();audio.play().catch(function(){});}
+  else audio.pause();
+};
 function onPlay(){
+  syncDeckUI();
   if(lightOn){initAudio();setMode('music');}else{setMode(null,true);}
 }
 function attachAudio(){
   audio.addEventListener('play',onPlay);
+  audio.addEventListener('timeupdate',syncDeckUI);
+  audio.addEventListener('loadedmetadata',syncDeckUI);
   audio.addEventListener('pause',function(){
     if(recreating)return;
+    syncDeckUI();
     clearMeterUI();
     $('tele').textContent='Пауза';
     if(mode==='music'){
@@ -1164,6 +1432,7 @@ function attachAudio(){
       audio.play().catch(function(){});
       return;
     }
+    syncDeckUI();
     clearMeterUI();
     if(mode==='music'||mode==='ambient'){
       if(ambOn&&lightOn)setMode('ambient');
@@ -1177,7 +1446,7 @@ function recreateAudio(){
   recreating=true;
   old.pause();
   var a=document.createElement('audio');
-  a.controls=true;a.preload='auto';a.setAttribute('playsinline','');
+  a.className='hid';a.preload='auto';a.setAttribute('playsinline','');
   old.parentNode.replaceChild(a,old);
   audio=a;anFile=null;dly=null;
   recreating=false;
@@ -1187,6 +1456,7 @@ function recreateAudio(){
     a.src=u;
     a.addEventListener('loadedmetadata',function(){
       try{a.currentTime=pos;}catch(e){}
+      syncDeckUI();
       if(was){if(lightOn)initAudio();a.play().catch(function(){});}
     },{once:true});
   }
@@ -1216,7 +1486,7 @@ $('file').onchange=function(e){
 };
 attachAudio();
 
-/* Библиотека треков + память настроек и карт в IndexedDB */
+/* Библиотека треков + память настроек, жанров и карт в IndexedDB */
 var db=null,tracks=[],cur=-1,nowName='';
 function fmtDur(sec){
   if(!sec||!isFinite(sec))return '';
@@ -1276,6 +1546,11 @@ function renderLib(){
       playIndex(i);
     };
     row.appendChild(n);
+    var gTag=(v.cfg&&v.cfg.genre&&v.cfg.genre!=='auto'&&GENRE_DB[v.cfg.genre])?GENRE_DB[v.cfg.genre].name:((v.map&&v.map.genre&&GENRE_DB[v.map.genre])?GENRE_DB[v.map.genre].name:'');
+    if(gTag){
+      var gt=document.createElement('small');gt.textContent=gTag;
+      row.appendChild(gt);
+    }
     if(v.dur){
       var tm=document.createElement('small');tm.textContent=fmtDur(v.dur);
       row.appendChild(tm);
@@ -1334,6 +1609,9 @@ var playSeq=0;
 function playBlob(b,name,onBuf){
   var seq=++playSeq;
   nowName=name||'';
+  $('pTitle').textContent=nowName||'Трек не выбран';
+  $('pTime').textContent='0:00 / 0:00';
+  fileHintGenre=detectFileHint(nowName);
   resetAudioStats();
   setMeta(nowName);
   drawTrackMap();
@@ -1362,7 +1640,7 @@ function playIndex(i){
   if(tr.cfg){
     if(tr.cfg.mmode)setMusicMode(tr.cfg.mmode,true);
     if(tr.cfg.solo)setSoloMode(tr.cfg.solo,true);
-    if(tr.cfg.prof)setProfile(tr.cfg.prof,true);
+    if(tr.cfg.genre)setGenreMode(tr.cfg.genre,true);
     if(tr.cfg.vpal)setVPal(tr.cfg.vpal,true);
     if(typeof tr.cfg.mud==='number')setAntiMud(tr.cfg.mud===1,true);
   }
@@ -1493,7 +1771,7 @@ document.querySelectorAll('[data-sun]').forEach(function(b){
   setMusicMode(loadCfg('mmode','auto'),true);
   setVPal(loadCfg('vpal','auto'),true);
   setSoloMode(loadCfg('solo','all'),true);
-  setProfile(loadCfg('prof','auto'),true);
+  setGenreMode(loadCfg('genre','auto'),true);
   setAntiMud(loadCfg('mud','1')==='1',true);
   setSrcBand(+loadCfg('band','0'));
   var s=+loadCfg('sens','100');$('sens').value=s;$('sv').textContent=s;
