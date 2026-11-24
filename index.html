@@ -50,7 +50,7 @@ label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
 <div class="card">
 <button id="conn">Подключиться</button>
 <div id="status">Не подключено</div>
-<div id="ver" style="text-align:center;color:var(--muted);font-size:12px;margin-top:6px">версия 16</div>
+<div id="ver" style="text-align:center;color:var(--muted);font-size:12px;margin-top:6px">версия 17</div>
 </div>
 <div class="tabs" id="tabs">
 <button data-t="t1" class="sel">Цвет</button>
@@ -160,7 +160,7 @@ function write(p){
   if(busy){pending=p;return;}
   busy=true;
   ch.writeValueWithoutResponse(new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]))
-  .catch(function(){werr++;$('ver').textContent='версия 16, ошибок записи: '+werr;})
+  .catch(function(){werr++;$('ver').textContent='версия 17, ошибок записи: '+werr;})
   .then(function(){busy=false;if(pending){var q=pending;pending=null;write(q);}});
 }
 
@@ -188,7 +188,7 @@ $('conn').onclick=function(){
   .then(function(s){return s.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');})
   .then(function(c){
     ch=c;busy=false;pending=null;werr=0;lastSentRGB=[-1,-1,-1];
-    $('ver').textContent='версия 16';
+    $('ver').textContent='версия 17';
     st.textContent='Подключено';
     sendStatic(true);
   })
@@ -253,52 +253,23 @@ function ambientColor(t){
 var fl=0.5,spT=0,spH=0,spV=0,sunT0=0,sunDur=0;
 var FX=[['rainbow','Радуга'],['breath','Дыхание'],['fire','Огонь'],['ocean','Океан'],['sparkle','Искры'],['jump','Переходы RGB'],['police','Полиция'],['strobe','Стробоскоп']];
 function effectFrame(t){
-  var s=speed/5,c;
-  switch(mode){
-    case 'rainbow':c=hsv((t*0.06*s)%360,1,1);break;
-    case 'breath':var b=(Math.sin(t*0.003*s)+1)/2;c=[color[0]*b,color[1]*b,color[2]*b];break;
-    case 'strobe':c=((t*s/100)%2<1)?[255,255,255]:[0,0,0];break;
-    case 'fire':fl=fl*0.7+Math.random()*0.3;c=[255*(0.4+0.6*fl),90*fl*Math.random(),0];break;
-    case 'police':c=((t*s/180)%2<1)?[255,0,0]:[0,0,255];break;
-    case 'sparkle':if(t-spT>150/s){spT=t;spH=Math.random()*360;spV=1;}spV*=0.93;c=hsv(spH,1,spV);break;
-    case 'jump':c=[[255,0,0],[0,255,0],[0,0,255]][Math.floor(t*s/600)%3];break;
-    case 'ocean':c=hsv(180+(Math.sin(t*0.0015*s)+1)*30,1,0.5+0.25*(Math.sin(t*0.004*s)+1));break;
-    case 'sunrise':
-      var p=Math.min(1,(t-sunT0)/sunDur);
-      var from=p<0.5?[255,0,0]:[255,90,0],to=p<0.5?[255,90,0]:[255,190,90],q=p<0.5?p*2:(p-0.5)*2;
-      var k=Math.max(0.04,p);
-      c=[(from[0]+(to[0]-from[0])*q)*k,(from[1]+(to[1]-from[1])*q)*k,(from[2]+(to[2]-from[2])*q)*k];break;
-    case 'ambient':
-      c=ambientColor(t);break;
-    default:return null;
-  }
-  return c;
-}
-FX.forEach(function(f){
-  var b=document.createElement('button');b.className='alt';b.textContent=f[1];b.setAttribute('data-fx',f[0]);
-  b.onclick=function(){setMode(f[0]);};
-  $('fx').appendChild(b);
-});
-$('fxstop').onclick=function(){setMode(null);};
-$('speed').oninput=function(e){speed=+e.target.value;};
-
-/* Ультра-движок распознавания музыки и светомузыки */
+/* Ультра-движок распознавания музыки и светомузыки (v17) */
 var audio=$('audio'),musicMode='spec',trackProfile='auto',actx=null,anFile=null,dly=null;
 var freqFloat=null,timeFloat=null;
-var envPeak=[0.18,0.14,0.10,0.18],sm=[0,0,0,0],prevLin=[0,0,0,0],fluxAvg=[0.02,0.02,0.02,0.02];
-var hue=0,vHue=275,vTargetHue=275,vStep=0,lastBeat=0,flash=0,vPulse=0,vSpark=0;
+var envPeak=[0.14,0.11,0.09,0.14],sm=[0,0,0,0],prevLin=[0,0,0,0],fluxAvg=[0.02,0.02,0.02,0.02];
+var hue=0,vHue=275,vTargetHue=275,vAlt=0,vCut=0,vRole=0,lastBeat=0,flash=0,vPulse=0,vSpark=0;
 var lastBandBeat=[0,0,0],bandFlash=[0,0,0],lastT=0,srcBand=0;
 var ambOn=true,ambMix=0,rawBeats=[],lastRawBeat=0;
 var beatIntervals=[],estBpm=0,shortEnergy=0,longEnergy=0,dropBoost=0,lastTeleT=0;
 var styleStats={bass:0,mid:0,high:0,crest:0};
 
 function resetAudioStats(){
-  envPeak=[0.18,0.14,0.10,0.18];
+  envPeak=[0.14,0.11,0.09,0.14];
   sm=[0,0,0,0];
   prevLin=[0,0,0,0];
   fluxAvg=[0.02,0.02,0.02,0.02];
   bandFlash=[0,0,0];
-  flash=0;vPulse=0;vSpark=0;
+  flash=0;vPulse=0;vSpark=0;vAlt=0;vCut=0;vRole=0;
   rawBeats=[];beatIntervals=[];estBpm=0;
   shortEnergy=0;longEnergy=0;dropBoost=0;
   styleStats={bass:0,mid:0,high:0,crest:0};
@@ -314,7 +285,7 @@ function initAudio(){
   var src=actx.createMediaElementSource(audio);
   anFile=actx.createAnalyser();
   anFile.fftSize=4096;
-  anFile.smoothingTimeConstant=0.12;
+  anFile.smoothingTimeConstant=0.10;
   freqFloat=new Float32Array(anFile.frequencyBinCount);
   timeFloat=new Float32Array(anFile.fftSize);
   src.connect(anFile);
@@ -324,19 +295,17 @@ function initAudio(){
   dly.connect(actx.destination);
 }
 
-/* Перевод точных дБ в линейную акустическую энергию */
+/* Перевод дБ в линейную энергию */
 function dbToLin(db){
-  if(db<=-88)return 0;
-  if(db>=0)return 1;
-  return Math.exp(db*0.11512925465);
+  return db<=-88?0:(db>=0?1:Math.exp(db*0.11512925465));
 }
 
-/* Анализ частотного диапазона: сочетание RMS и пиков нот */
+/* Анализ частотного диапазона: баланс пиков нот и общей энергии */
 function analyzeBand(a,b,topCount,peakWeight,subBoost){
   if(b<=a)b=a+1;
   if(b>freqFloat.length)b=freqFloat.length;
   var sumSq=0,count=b-a,top=[],i,j,v,e,w;
-  var midBin=a+Math.floor(count*0.42);
+  var midBin=a+Math.floor(count*0.45);
   for(i=a;i<b;i++){
     v=dbToLin(freqFloat[i]);
     if(subBoost&&i<=midBin)v*=subBoost;
@@ -364,55 +333,51 @@ function analyzeBand(a,b,topCount,peakWeight,subBoost){
   return rms*(1-peakWeight)+topAvg*peakWeight;
 }
 
-/* Распознавание музыкальных нот (12-тоновая хрома) для режима Виртуоз */
+/* Распознавание 12-тоновой гармонии мелодии для Виртуоза */
 function detectPitchHue(binHz){
-  var bStart=Math.max(2,Math.round(130/binHz));
-  var bEnd=Math.min(freqFloat.length,Math.round(1350/binHz));
+  var bStart=Math.max(2,Math.round(140/binHz));
+  var bEnd=Math.min(freqFloat.length,Math.round(1450/binHz));
   var chroma=[0,0,0,0,0,0,0,0,0,0,0,0];
-  var total=0,i,lin,e,freq,midi,note;
+  var total=0,i,lin,e,midi,note;
   for(i=bStart;i<bEnd;i++){
     lin=dbToLin(freqFloat[i]);
-    if(lin<0.015)continue;
+    if(lin<0.012)continue;
     e=lin*lin;
-    freq=i*binHz;
-    midi=69+12*(Math.log(freq/440)/0.69314718056);
+    midi=69+12*(Math.log((i*binHz)/440)/0.69314718056);
     note=((Math.round(midi)%12)+12)%12;
     chroma[note]+=e;
     total+=e;
   }
-  if(total<0.0004)return -1;
+  if(total<0.0003)return -1;
   var vx=0,vy=0,ang;
   for(i=0;i<12;i++){
     ang=((i*7)%12)*(Math.PI/6);
     vx+=Math.cos(ang)*chroma[i];
     vy+=Math.sin(ang)*chroma[i];
   }
-  var deg=Math.atan2(vy,vx)*57.2957795;
-  return (deg+360)%360;
+  return (Math.atan2(vy,vx)*57.2957795+360)%360;
 }
 
-/* Подавление смешивания в белый шум: сохраняем сочные чистые цвета на ленте */
+/* Чистое разделение цветов без размытия в белый шум */
 function enhanceContrast(r,g,b){
   var mx=Math.max(r,g,b);
-  if(mx<0.06)return [r,g,b];
+  if(mx<0.05)return [r,g,b];
   var nr=r/mx,ng=g/mx,nb=b/mx;
-  nr=(nr<0.55)?Math.pow(nr,1.45):nr;
-  ng=(ng<0.55)?Math.pow(ng,1.45):ng;
-  nb=(nb<0.55)?Math.pow(nb,1.45):nb;
+  nr=(nr<0.62)?Math.pow(nr,1.65):nr;
+  ng=(ng<0.62)?Math.pow(ng,1.65):ng;
+  nb=(nb<0.62)?Math.pow(nb,1.65):nb;
   return [nr*mx,ng*mx,nb*mx];
 }
 
 function getEffectiveProfile(){
   if(trackProfile!=='auto')return trackProfile;
-  if(styleStats.bass>styleStats.mid*1.28&&styleStats.crest>2.3)return 'club';
-  if(styleStats.mid>styleStats.bass*1.05&&styleStats.mid>styleStats.high*1.35)return 'vocal';
+  if(styleStats.bass>styleStats.mid*1.25&&styleStats.crest>2.2)return 'club';
+  if(styleStats.mid>styleStats.bass*1.02&&styleStats.mid>styleStats.high*1.25)return 'vocal';
   return 'rock';
 }
 
 function profileLabel(p){
-  if(p==='club')return 'Бас/Клуб';
-  if(p==='vocal')return 'Вокал';
-  return 'Рок/Драйв';
+  return p==='club'?'Бас/Клуб':(p==='vocal'?'Вокал':'Рок/Драйв');
 }
 
 function musicFrame(){
@@ -423,7 +388,7 @@ function musicFrame(){
   var t=performance.now(),dt=Math.min(100,Math.max(1,t-(lastT||t)));
   lastT=t;
 
-  /* Быстрый анализ формы волны (последние ~21 мс) для мгновенной реакции на удар */
+  /* Анализ атаки по форме волны (последние ~21 мс) */
   var wSum=0,wPeak=0,wi,ws;
   var wStart=Math.max(0,timeFloat.length-1024);
   for(wi=wStart;wi<timeFloat.length;wi++){
@@ -433,57 +398,64 @@ function musicFrame(){
   }
   var wRms=Math.sqrt(wSum/(timeFloat.length-wStart));
   var crest=wPeak/Math.max(0.008,wRms);
-  var transientKick=Math.max(0,Math.min(1,(crest-2.1)*0.42))*Math.min(1,wPeak*2.8);
+  var transientKick=Math.max(0,Math.min(1,(crest-2.05)*0.45))*Math.min(1,wPeak*2.8);
 
   var sr=(actx&&actx.sampleRate)?actx.sampleRate:48000;
   var binHz=sr/anFile.fftSize;
 
-  /* Разделение полос: Бас 30-165 Гц, Голос/Мелодия 230-2400 Гц, Верх 4200-13000 Гц */
+  /* Чёткие границы с защитной зоной 118-265 Гц, чтобы голос не лез в красный бас */
   var b0=Math.max(1,Math.round(30/binHz));
-  var b1=Math.max(b0+2,Math.round(165/binHz));
-  var m0=Math.max(b1+2,Math.round(230/binHz));
-  var m1=Math.max(m0+4,Math.round(2400/binHz));
-  var h0=Math.max(m1+4,Math.round(4200/binHz));
-  var h1=Math.min(freqFloat.length,Math.max(h0+4,Math.round(13000/binHz)));
+  var bSub=Math.max(b0+1,Math.round(78/binHz));
+  var b1=Math.max(bSub+1,Math.round(118/binHz));
+  var m0=Math.max(b1+3,Math.round(265/binHz));
+  var m1=Math.max(m0+4,Math.round(2350/binHz));
+  var h0=Math.max(m1+4,Math.round(3600/binHz));
+  var h1=Math.min(freqFloat.length,Math.max(h0+4,Math.round(13500/binHz)));
 
-  var rawBass=analyzeBand(b0,b1,2,0.58,1.25)+transientKick*0.045;
-  var rawMid=analyzeBand(m0,m1,5,0.68,1.12);
-  var rawHigh=analyzeBand(h0,h1,4,0.34,1.0)*0.82;
+  var subBass=analyzeBand(b0,bSub,1,0.50,1.35);
+  var rawBass=analyzeBand(b0,b1,2,0.52,1.25)+transientKick*0.04;
+  var rawMid=analyzeBand(m0,m1,6,0.80,1.15)*2.35;
+  var rawHigh=analyzeBand(h0,h1,6,0.72,1.0)*3.40;
+
+  /* Подавление утечки вокала в красный канал: если суб-баса нет, а голос громкий — режем хвост */
+  if(rawMid>0.03&&subBass<rawMid*0.18&&transientKick<0.15){
+    rawBass*=0.26;
+  }
+
   var rawAll=Math.max(rawBass,rawMid,rawHigh);
   var raw=[rawBass,rawMid,rawHigh,rawAll];
 
-  /* Накопление статистики характера трека */
-  var stAlpha=1-Math.exp(-dt/2500);
+  /* Статистика стиля трека */
+  var stAlpha=1-Math.exp(-dt/2400);
   styleStats.bass=styleStats.bass*(1-stAlpha)+rawBass*stAlpha;
   styleStats.mid=styleStats.mid*(1-stAlpha)+rawMid*stAlpha;
   styleStats.high=styleStats.high*(1-stAlpha)+rawHigh*stAlpha;
   styleStats.crest=styleStats.crest*(1-stAlpha)+crest*stAlpha;
 
   var prof=getEffectiveProfile();
-  var profMul=(prof==='club')?[1.14,0.96,0.92,1.08]:(prof==='vocal')?[0.94,1.18,0.95,1.06]:[1.05,1.06,1.04,1.05];
-  var relTimes=(prof==='club')?[115,100,65,105]:(prof==='vocal')?[145,130,85,125]:[125,105,72,110];
+  var profMul=(prof==='club')?[1.16,0.96,1.02,1.08]:(prof==='vocal')?[0.90,1.20,1.05,1.06]:[1.06,1.08,1.10,1.06];
+  var relTimes=(prof==='club')?[115,105,68,105]:(prof==='vocal')?[140,130,85,125]:[125,110,75,110];
 
   var gain=($('sens').value/100);
   var lvl=[],led=[],flux=[],i;
-  var minPeaks=[0.14,0.11,0.08,0.14];
-  var gates=[0.012,0.010,0.016,0.012];
-  var peakDecay=Math.exp(-dt/3600);
-  var flAlpha=1-Math.exp(-dt/200);
+  var minPeaks=[0.11,0.09,0.075,0.11];
+  var gates=[0.008,0.007,0.006,0.008];
+  var peakDecay=Math.exp(-dt/3400);
+  var flAlpha=1-Math.exp(-dt/190);
 
   for(i=0;i<4;i++){
     envPeak[i]=Math.max(raw[i],envPeak[i]*peakDecay,minPeaks[i]);
     var clean=Math.max(0,raw[i]-gates[i]);
-    var span=Math.max(0.05,envPeak[i]-gates[i]);
+    var span=Math.max(0.04,envPeak[i]-gates[i]);
     var norm=(clean/span)*gain*profMul[i];
     lvl[i]=Math.max(0,Math.min(1,norm));
 
-    var att=1-Math.exp(-dt/10);
+    var att=1-Math.exp(-dt/9);
     var rel=1-Math.exp(-dt/relTimes[i]);
     sm[i]+=(lvl[i]-sm[i])*(lvl[i]>sm[i]?att:rel);
 
-    /* Перцептивная кривая для LED-ленты: глубокие тени и яркие пики */
     var cVal=Math.max(0,Math.min(1,sm[i]));
-    led[i]=cVal<0.02?0:Math.pow(cVal,1.38);
+    led[i]=cVal<0.02?0:Math.pow(cVal,1.32);
 
     var dLin=Math.max(0,raw[i]-prevLin[i])/span;
     prevLin[i]=raw[i];
@@ -492,19 +464,19 @@ function musicFrame(){
   }
 
   /* Детектор дропа / кульминации */
-  var curE=Math.max(led[0],led[1],led[2]*0.8);
-  shortEnergy+=(curE-shortEnergy)*(1-Math.exp(-dt/260));
-  longEnergy+=(curE-longEnergy)*(1-Math.exp(-dt/4800));
-  if(shortEnergy>longEnergy*1.38&&shortEnergy>0.48){
-    dropBoost=Math.min(0.24,(shortEnergy-longEnergy)*0.55);
+  var curE=Math.max(led[0],led[1],led[2]*0.9);
+  shortEnergy+=(curE-shortEnergy)*(1-Math.exp(-dt/250));
+  longEnergy+=(curE-longEnergy)*(1-Math.exp(-dt/4600));
+  if(shortEnergy>longEnergy*1.35&&shortEnergy>0.46){
+    dropBoost=Math.min(0.28,(shortEnergy-longEnergy)*0.60);
   }else{
-    dropBoost*=Math.exp(-dt/700);
+    dropBoost*=Math.exp(-dt/680);
   }
 
-  /* Детектор ударов и авто-расчёт BPM */
-  var beatScore=flux[0]*0.62+flux[3]*0.38+transientKick*0.22;
-  var thrAny=Math.max(0.048,fluxAvg[3]*1.38);
-  if(lvl[3]>0.20&&beatScore>thrAny&&t-lastRawBeat>240){
+  /* Детектор ударов и расчёт BPM */
+  var beatScore=flux[0]*0.60+flux[3]*0.40+transientKick*0.22;
+  var thrAny=Math.max(0.046,fluxAvg[3]*1.36);
+  if(lvl[3]>0.19&&beatScore>thrAny&&t-lastRawBeat>240){
     if(lastRawBeat>0){
       var ioi=t-lastRawBeat;
       if(ioi>=260&&ioi<=1600){
@@ -514,8 +486,7 @@ function musicFrame(){
         if(beatIntervals.length>14)beatIntervals.shift();
         if(beatIntervals.length>=4){
           var sorted=beatIntervals.slice().sort(function(a,b){return a-b;});
-          var medIoi=sorted[Math.floor(sorted.length/2)];
-          estBpm=Math.round(60000/medIoi);
+          estBpm=Math.round(60000/sorted[Math.floor(sorted.length/2)]);
         }
       }
     }
@@ -524,7 +495,7 @@ function musicFrame(){
     if(rawBeats.length>24)rawBeats.shift();
   }
 
-  /* Телеметрия распознавания (обновление 4 раза в секунду) */
+  /* Телеметрия */
   if(t-lastTeleT>240){
     lastTeleT=t;
     var dom='Тишина';
@@ -538,7 +509,7 @@ function musicFrame(){
     $('tele').textContent=bpmTxt+profTxt+' · Акцент: '+dom;
   }
 
-  /* Плавная подложка в тихих проигрышах внутри трека */
+  /* Подложка в тихих проигрышах */
   var targetAmb=(ambOn&&curE<0.11)?Math.min(1,(0.11-curE)/0.08):0;
   ambMix+=(targetAmb-ambMix)*(1-Math.exp(-dt/(targetAmb>ambMix?260:85)));
   function withAmb(rgb){
@@ -557,16 +528,16 @@ function musicFrame(){
     return withAmb([cSpec[0]*255*boost,cSpec[1]*255*boost,cSpec[2]*255*boost]);
   }
 
-  /* 2. RGB Бит: вспышки ударов по каждой полосе отдельно */
+  /* 2. RGB Бит: раздельные ударные вспышки */
   if(musicMode==='rgbbeat'){
-    var bRels=[150,115,72];
-    var bGates=[0.048,0.045,0.055];
+    var bRels=[145,115,72];
+    var bGates=[0.046,0.044,0.050];
     for(i=0;i<3;i++){
       var flVal=flux[i]+(i===0?transientKick*0.20:0);
-      var thrI=Math.max(bGates[i],fluxAvg[i]*1.42);
-      if(lvl[i]>0.18&&flVal>thrI&&t-lastBandBeat[i]>125){
+      var thrI=Math.max(bGates[i],fluxAvg[i]*1.40);
+      if(lvl[i]>0.17&&flVal>thrI&&t-lastBandBeat[i]>125){
         lastBandBeat[i]=t;
-        bandFlash[i]=Math.min(1,0.74+lvl[i]*0.35);
+        bandFlash[i]=Math.min(1,0.76+lvl[i]*0.34);
       }
       bandFlash[i]=Math.max(0,bandFlash[i]*Math.exp(-dt/bRels[i]));
     }
@@ -574,35 +545,64 @@ function musicFrame(){
     return withAmb([cRgb[0]*255,cRgb[1]*255,cRgb[2]*255]);
   }
 
-  /* 3. Виртуоз: гармонический анализ нот мелодии + бас + искры верхов */
+  /* 3. Виртуоз: перекличка линий (одна линия гаснет — другая вспыхивает) + гармония нот + дроп-каты */
   if(musicMode==='virtuoso'){
     var noteHue=detectPitchHue(binHz);
     if(noteHue>=0){
       var diff=((noteHue-vTargetHue+540)%360)-180;
-      vTargetHue=(vTargetHue+diff*(1-Math.exp(-dt/180))+360)%360;
+      vTargetHue=(vTargetHue+diff*(1-Math.exp(-dt/160))+360)%360;
     }else{
-      vTargetHue=(vTargetHue+dt*0.025)%360;
+      vTargetHue=(vTargetHue+dt*0.03)%360;
     }
     var hDiff=((vTargetHue-vHue+540)%360)-180;
-    vHue=(vHue+hDiff*(1-Math.exp(-dt/110))+360)%360;
+    vHue=(vHue+hDiff*(1-Math.exp(-dt/95))+360)%360;
 
-    var thrV=Math.max(0.05,fluxAvg[s]*1.40);
-    var flV=flux[s]+(s===0||s===3?transientKick*0.18:0);
-    if(lvl[s]>0.20&&flV>thrV&&t-lastBeat>170){
+    /* Переключение роли: 0 = ударная басовая линия, 1 = вокально-мелодическая линия */
+    if(led[0]>led[1]*1.22&&led[0]>0.22)vRole=0;
+    else if(led[1]>led[0]*1.18&&led[1]>0.20)vRole=1;
+
+    var thrV=Math.max(0.048,fluxAvg[s]*1.36);
+    var flV=flux[s]+(s===0||s===3?transientKick*0.20:0);
+    if(lvl[s]>0.19&&flV>thrV&&t-lastBeat>165){
       lastBeat=t;
-      vStep=(vStep+1)%2;
-      vTargetHue=(vTargetHue+(vStep?60:150))%360;
-      vPulse=Math.min(1,0.82+lvl[s]*0.25);
+      vAlt=(vAlt+1)%3;
+      vCut=36; /* Короткий разрыв (36 мс): старая линия гаснет, новая вспыхивает */
+      vPulse=Math.min(1,0.86+lvl[s]*0.22);
     }
-    vPulse=Math.max(0,vPulse*Math.exp(-dt/185));
+    vPulse=Math.max(0,vPulse*Math.exp(-dt/170));
+    if(vCut>0)vCut=Math.max(0,vCut-dt);
 
-    if(flux[2]>0.075&&lvl[2]>0.26)vSpark=Math.min(1,vSpark+flux[2]*1.4);
-    vSpark*=Math.exp(-dt/80);
+    if(flux[2]>0.068&&lvl[2]>0.24)vSpark=Math.min(1,vSpark+flux[2]*1.6);
+    vSpark*=Math.exp(-dt/75);
 
-    var sat=Math.max(0.68,1-vSpark*0.28);
-    var energy=Math.min(1,led[0]*0.46+led[1]*0.50+led[2]*0.22);
-    var val=Math.min(1,0.03+energy*0.62+vPulse*0.38+dropBoost*0.4);
-    return withAmb(hsv(vHue,sat,val));
+    /* Момент смены линии: гасим свет на долю секунды для эффекта переключения лент */
+    if(vCut>0)return [0,0,0];
+
+    var activeHue=vRole===0?((vHue+vAlt*120)%360):((vHue+150)%360);
+    var energy=Math.min(1,led[0]*0.48+led[1]*0.52+led[2]*0.24);
+    var val=Math.min(1,0.03+energy*0.58+vPulse*0.42+dropBoost*0.45);
+    var baseRgb=hsv(activeHue,1,val);
+
+    /* Чередование физических линий RGB: одна линия полностью гаснет, другая горит на максимум */
+    var outRgb;
+    if(dropBoost>0.06){
+      /* На дропе — жёсткое поочерёдное переключение чистых линий R / G / B */
+      var chVal=Math.min(255,val*275);
+      outRgb=vAlt===0?[chVal,0,chVal*0.18]:(vAlt===1?[0,chVal,chVal*0.22]:[chVal*0.15,chVal*0.25,chVal]);
+    }else if(vRole===0){
+      /* Басовая линия: гасим зелёную линию, зажигаем красно-синюю глубину */
+      outRgb=[baseRgb[0],baseRgb[1]*0.08,baseRgb[2]*0.85];
+    }else{
+      /* Вокальная линия: гасим красную басовую линию, зажигаем изумрудно-бирюзовую */
+      outRgb=[baseRgb[0]*0.06,baseRgb[1],baseRgb[2]*0.92];
+    }
+
+    /* Алмазные вспышки высоких частот поверх активной линии */
+    if(vSpark>0.08){
+      var sp=vSpark*150;
+      outRgb=[Math.min(255,outRgb[0]+sp*0.6),Math.min(255,outRgb[1]+sp*0.8),Math.min(255,outRgb[2]+sp)];
+    }
+    return withAmb(outRgb);
   }
 
   /* 4. Пульс */
@@ -618,12 +618,12 @@ function musicFrame(){
   }
 
   /* 6. Бит */
-  var thr=Math.max(0.05,fluxAvg[s]*1.42);
+  var thr=Math.max(0.048,fluxAvg[s]*1.38);
   var flB=flux[s]+(s===0||s===3?transientKick*0.20:0);
-  if(lvl[s]>0.20&&flB>thr&&t-lastBeat>165){
+  if(lvl[s]>0.19&&flB>thr&&t-lastBeat>165){
     lastBeat=t;hue=(hue+53)%360;flash=1;
   }
-  flash=Math.max(0,flash*Math.exp(-dt/180));
+  flash=Math.max(0,flash*Math.exp(-dt/175));
   return withAmb(hsv(hue,1,flash));
 }
 
