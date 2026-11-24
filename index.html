@@ -123,7 +123,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 </head>
 <body>
 <div class="top">
-  <div class="brand"><h1>LED лента</h1><span id="ver">версия 31</span></div>
+  <div class="brand"><h1>LED лента</h1><span id="ver">версия 32</span></div>
   <button id="theme" class="alt ic">День</button>
 </div>
 <div class="card conn-card">
@@ -322,13 +322,37 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 </div>
 
 <script>
-var werr=0,ch=null,color=[255,0,0],bright=100,fadeK=1,busy=false,pending=null,pendingPrio=false,mode=null,raf=0,lastSend=0,speed=5;
-var lastSentRGB=[-1,-1,-1],lastGlowT=0;
+var werr=0,bleDev=null,ch=null,color=[255,0,0],bright=100,manualBright=100,fadeK=1;
+var busy=false,pending=null,pendingPrio=false,mode=null,raf=0,lastSend=0,speed=5;
+var lastSentRGB=[-1,-1,-1],lastGlowT=0,sunDur=60000,sunT0=0,curFx='rainbow';
 var st=document.getElementById('status');
 function $(i){return document.getElementById(i);}
 function errText(e){return 'Ошибка: '+((e&&(e.name||e.message))?((e.name||'')+' '+(e.message||'')).trim():String(e));}
 function saveCfg(k,v){try{localStorage.setItem('led-'+k,String(v));}catch(e){}}
 function loadCfg(k,d){try{var v=localStorage.getItem('led-'+k);return v===null?d:v;}catch(e){return d;}}
+
+function hsv(h,s,v){
+  h=((h%360)+360)%360;
+  var c=v*s,x=c*(1-Math.abs(((h/60)%2)-1)),m=v-c,r=0,g=0,b=0;
+  if(h<60){r=c;g=x;}
+  else if(h<120){r=x;g=c;}
+  else if(h<180){g=c;b=x;}
+  else if(h<240){g=x;b=c;}
+  else if(h<300){r=x;b=c;}
+  else{r=c;b=x;}
+  return [(r+m)*255,(g+m)*255,(b+m)*255];
+}
+
+function mixRgb(a,b,t){
+  t=Math.max(0,Math.min(1,t));
+  return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+}
+
+function ambientColor(t){
+  var h=(t*0.008)%360;
+  var breath=0.11+0.05*Math.sin(t*0.0014);
+  return hsv(h,0.82,breath);
+}
 
 function setLedGlow(r,g,b,force){
   var now=performance.now();
@@ -337,7 +361,7 @@ function setLedGlow(r,g,b,force){
   document.documentElement.style.setProperty('--led',Math.round(r)+','+Math.round(g)+','+Math.round(b));
 }
 
-/* Умная очередь Bluetooth с приоритетом удара */
+/* Умная очередь Bluetooth с приоритетом удара и защитой от сбоев */
 function write(p,prio){
   if(!ch)return;
   if(busy){
@@ -347,18 +371,306 @@ function write(p,prio){
   }
   busy=true;
   var pkt=new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]);
-  var op=ch.writeValueWithoutResponse?ch.writeValueWithoutResponse(pkt):ch.writeValue(pkt);
-  op.catch(function(){
-    if(ch){werr++;$('ver').textContent='версия 31 · сбоев: '+werr;}
-  }).then(function(){
-// ... existing code ... -->
-  .then(function(c){
+  try{
+    var op=ch.writeValueWithoutResponse?ch.writeValueWithoutResponse(pkt):ch.writeValue(pkt);
+    op.catch(function(){
+      if(ch){werr++;$('ver').textContent='версия 32 · сбоев: '+werr;}
+    }).then(function(){
+      busy=false;
+      if(pending){
+        var nxt=pending,pr=pendingPrio;
+        pending=null;pendingPrio=false;
+        write(nxt,pr);
+      }
+    });
+  }catch(e){
+    busy=false;
+    if(ch){werr++;$('ver').textContent='версия 32 · сбоев: '+werr;}
+  }
+}
+
+function sendRGB(r,g,b,force,prio){
+  var k=(bright/100)*fadeK;
+  var rr=r*k,gg=g*k,bb=b*k;
+  if(carOn&&carIsNight&&carEye){
+    bb*=0.52;
+    var lum=0.299*rr+0.587*gg+0.114*bb;
+    if(lum>135){
+      var cap=135/lum;
+      rr*=cap;gg*=cap;bb*=cap;
+    }
+  }
+  rr=Math.max(0,Math.min(255,Math.round(rr)));
+  gg=Math.max(0,Math.min(255,Math.round(gg)));
+  bb=Math.max(0,Math.min(255,Math.round(bb)));
+  if((rr+gg+bb)>0&&(rr+gg+bb)<12&&bright>0&&fadeK>0){
+    var boost=12/(rr+gg+bb);
+    rr=Math.min(255,Math.round(rr*boost));
+    gg=Math.min(255,Math.round(gg*boost));
+    bb=Math.min(255,Math.round(bb*boost));
+  }
+  setLedGlow(rr,gg,bb,force);
+  if(!force&&Math.abs(rr-lastSentRGB[0])<=1&&Math.abs(gg-lastSentRGB[1])<=1&&Math.abs(bb-lastSentRGB[2])<=1)return;
+  var now=performance.now();
+  if(!force&&!prio&&now-lastSend<40)return;
+  lastSend=now;
+  lastSentRGB=[rr,gg,bb];
+  write([rr,gg,bb],prio);
+}
+
+function sendStatic(force){
+  sendRGB(color[0],color[1],color[2],force,true);
+}
+
+function setBright(v,isManual){
+  bright=Math.max(0,Math.min(100,Math.round(+v||0)));
+  if(isManual){
+    manualBright=bright;
+    saveCfg('bright',bright);
+  }
+  $('bright').value=bright;
+  $('bv').textContent=bright;
+}
+
+function setColor(hex,skipSave){
+  if(!/^#[0-9a-fA-F]{6}$/.test(hex))return;
+  var r=parseInt(hex.slice(1,3),16);
+  var g=parseInt(hex.slice(3,5),16);
+  var b=parseInt(hex.slice(5,7),16);
+  color=[r,g,b];
+  $('color').value=hex.toLowerCase();
+  $('colorHex').textContent=hex.toUpperCase();
+  setLedGlow(r,g,b,true);
+  document.querySelectorAll('#presets button').forEach(function(sw){
+    sw.classList.toggle('active',sw.getAttribute('data-c')===hex.toLowerCase());
+  });
+  if(!skipSave)saveCfg('color',hex.toLowerCase());
+}
+
+/* Подключение Bluetooth (ELK-BLEDOM) */
+function onBleDisconnect(){
+  ch=null;busy=false;pending=null;pendingPrio=false;
+  st.textContent='Отключено';
+  $('conn').textContent='Подключиться';
+}
+
+$('conn').onclick=function(){
+  if(ch&&bleDev&&bleDev.gatt&&bleDev.gatt.connected){
+    bleDev.gatt.disconnect();
+    onBleDisconnect();
+    return;
+  }
+  if(!navigator.bluetooth){
+    st.textContent='Нужен браузер с Web Bluetooth (Bluefy / Chrome)';
+    return;
+  }
+  st.textContent='Поиск ленты...';
+  navigator.bluetooth.requestDevice({
+    acceptAllDevices:true,
+    optionalServices:[0xFFF0,'0000fff0-0000-1000-8000-00805f9b34fb']
+  }).then(function(dev){
+    if(bleDev)bleDev.removeEventListener('gattserverdisconnected',onBleDisconnect);
+    bleDev=dev;
+    bleDev.addEventListener('gattserverdisconnected',onBleDisconnect);
+    st.textContent='Подключение...';
+    return dev.gatt.connect();
+  }).then(function(srv){
+    return srv.getPrimaryService(0xFFF0);
+  }).then(function(svc){
+    return svc.getCharacteristic(0xFFF3);
+  }).then(function(c){
     ch=c;busy=false;pending=null;pendingPrio=false;werr=0;lastSentRGB=[-1,-1,-1];
-    $('ver').textContent='версия 31';
+    $('ver').textContent='версия 32';
     st.textContent='Подключено';
+    $('conn').textContent='Отключить';
     sendStatic(true);
-  })
-// ... existing code ... -->
+  }).catch(function(e){
+    ch=null;busy=false;
+    $('conn').textContent='Подключиться';
+    st.textContent=(e&&e.name==='NotFoundError')?'Выбор отменён':errText(e);
+  });
+};
+
+/* Навигация вкладок */
+document.querySelectorAll('#tabs button').forEach(function(b){
+  b.onclick=function(){
+    var id=b.getAttribute('data-t');
+    document.querySelectorAll('#tabs button').forEach(function(x){x.className=(x===b)?'sel':'alt';});
+    ['t1','t2','t3','t4','t5'].forEach(function(tid){$(tid).classList.toggle('hid',tid!==id);});
+    if(id==='t3')drawTrackMap();
+  };
+});
+
+document.querySelectorAll('#mtabs button').forEach(function(b){
+  b.onclick=function(){
+    var id=b.getAttribute('data-mt');
+    document.querySelectorAll('#mtabs button').forEach(function(x){x.className=(x===b)?'sel':'alt';});
+    ['mt1','mt2','mt3'].forEach(function(mid){$(mid).classList.toggle('hid',mid!==id);});
+  };
+});
+
+/* Вкладка 1: Цвет и пресеты */
+$('color').oninput=function(e){
+  setColor(e.target.value);
+  if(!mode)sendStatic(false);
+};
+$('bright').oninput=function(e){
+  setBright(e.target.value,true);
+  if(!mode)sendStatic(false);
+};
+$('on').onclick=function(){
+  fadeK=1;
+  if(bright===0)setBright(100,true);
+  setMode(null,true);
+  sendStatic(true);
+};
+$('off').onclick=function(){
+  audio.pause();
+  setMode(null,true);
+  sendRGB(0,0,0,true,true);
+};
+
+(function(){
+  var cols=['#ff0000','#ff6a00','#ffd000','#00e640','#00d4ff','#1a4dff','#9d00ff','#ffffff'];
+  var box=$('presets');
+  cols.forEach(function(c){
+    var b=document.createElement('button');
+    b.className='sw';
+    b.style.background=c;
+    b.setAttribute('data-c',c);
+    b.onclick=function(){
+      fadeK=1;
+      setColor(c);
+      setMode(null,true);
+      sendStatic(true);
+    };
+    box.appendChild(b);
+  });
+})();
+
+/* Вкладка 2: Эффекты, рассвет и единый цикл анимации */
+var FX_LIST=[
+  {id:'rainbow',name:'Радуга'},
+  {id:'breath',name:'Дыхание'},
+  {id:'aurora',name:'Сияние'},
+  {id:'fire',name:'Огонь'},
+  {id:'cyber',name:'Киберпанк'},
+  {id:'strobe',name:'Стробоскоп'},
+  {id:'police',name:'Полиция'},
+  {id:'fade',name:'Перелив'}
+];
+
+(function(){
+  var box=$('fx');
+  FX_LIST.forEach(function(item){
+    var b=document.createElement('button');
+    b.className='alt';
+    b.textContent=item.name;
+    b.setAttribute('data-fx',item.id);
+    b.onclick=function(){
+      curFx=item.id;
+      setMode('fx');
+    };
+    box.appendChild(b);
+  });
+})();
+
+$('speed').oninput=function(e){
+  speed=+e.target.value;
+  $('spv').textContent=speed;
+  saveCfg('speed',speed);
+};
+$('fxstop').onclick=function(){setMode(null);};
+
+function effectFrame(t){
+  var sp=0.35+speed*0.28;
+  if(curFx==='rainbow'){
+    return hsv((t*0.03*sp)%360,1,1);
+  }
+  if(curFx==='breath'){
+    var w=(Math.sin(t*0.0022*sp)+1)/2;
+    var k=0.06+0.94*(w*w);
+    return [color[0]*k,color[1]*k,color[2]*k];
+  }
+  if(curFx==='aurora'){
+    var a1=(Math.sin(t*0.0011*sp)+1)/2;
+    var a2=(Math.sin(t*0.0007*sp+1.7)+1)/2;
+    var h=135+a1*95+a2*35;
+    return hsv(h,0.92,0.55+0.45*a2);
+  }
+  if(curFx==='fire'){
+    var f1=Math.sin(t*0.009*sp)*0.5+0.5;
+    var f2=Math.sin(t*0.023*sp+2.1)*0.5+0.5;
+    var fl=0.45+0.55*(f1*0.65+f2*0.35);
+    return [255*fl,(32+58*f1)*fl,0];
+  }
+  if(curFx==='cyber'){
+    var cy=(Math.sin(t*0.0018*sp)+1)/2;
+    var base=mixRgb([255,0,128],[0,235,255],cy);
+    var gl=Math.sin(t*0.037*sp)>0.96?1:0;
+    return gl?[255,255,255]:base;
+  }
+  if(curFx==='strobe'){
+    var ph=(t*0.004*sp)%1;
+    return ph<0.35?[color[0],color[1],color[2]]:[0,0,0];
+  }
+  if(curFx==='police'){
+    var cyc=(t*0.0022*sp)%2;
+    if(cyc<1){
+      var p1=(cyc*3)%1;
+      return p1<0.45?[255,0,0]:[0,0,0];
+    }else{
+      var p2=((cyc-1)*3)%1;
+      return p2<0.45?[0,40,255]:[0,0,0];
+    }
+  }
+  var stepIdx=Math.floor((t*0.0012*sp)%6);
+  return hsv(stepIdx*60,1,1);
+}
+
+function loop(t){
+  if(!mode)return;
+  if(mode==='music'){
+    var res=runMusicPipeline(t);
+    if(res)sendRGB(res.rgb[0],res.rgb[1],res.rgb[2],false,res.prio);
+  }else if(mode==='ambient'){
+    var ac=ambientColor(t);
+    sendRGB(ac[0],ac[1],ac[2],false,false);
+  }else if(mode==='sunrise'){
+    var p=Math.min(1,Math.max(0,(t-sunT0)/Math.max(1000,sunDur)));
+    var c1=[255,14,0],c2=[255,115,12],c3=[255,228,180];
+    var sc=p<0.5?mixRgb(c1,c2,p*2):mixRgb(c2,c3,(p-0.5)*2);
+    var sk=0.06+0.94*Math.pow(p,1.4);
+    sendRGB(sc[0]*sk,sc[1]*sk,sc[2]*sk,false,false);
+    if(p>=1){
+      color=[255,228,180];
+      setColor('#ffe4b4',true);
+      setMode(null,true);
+      sendStatic(true);
+      return;
+    }
+  }else{
+    var fxRgb=effectFrame(t);
+    sendRGB(fxRgb[0],fxRgb[1],fxRgb[2],false,curFx==='strobe'||curFx==='police');
+  }
+  raf=requestAnimationFrame(loop);
+}
+
+function setMode(m,quiet){
+  if(raf){cancelAnimationFrame(raf);raf=0;}
+  mode=m;
+  document.querySelectorAll('#fx button').forEach(function(b){
+    b.className=(m==='fx'&&b.getAttribute('data-fx')===curFx)?'sel':'alt';
+  });
+  if(m){
+    wakeOn();
+    raf=requestAnimationFrame(loop);
+  }else{
+    wakeOff();
+    if(!quiet)sendStatic(true);
+  }
+}
+
 /* =====================================================================
    БАЗА ДАННЫХ ЖАНРОВ (15 ПРОФИЛЕЙ) И ИИ-СВЕТОРЕЖИССЁР
    ===================================================================== */
@@ -853,14 +1165,12 @@ function runAiDirector(sig,t,dt){
   var g=sig.genre,led=sig.led,lvl=sig.lvl,flux=sig.flux;
   var ms=sig.mapState;
 
-  /* Плавная энергия музыкальной фразы (1.4 сек), чтобы паузы между ударами не считались ямой */
   phraseEnergy+=(sig.curE-phraseEnergy)*(1-Math.exp(-dt/1400));
 
   var isBreak=(ms===0||phraseEnergy<0.13);
   var isDrop=!isBreak&&(ms===3||(dropBoost>0.11&&phraseEnergy>0.42));
   var isBuild=!isBreak&&!isDrop&&(ms===2);
 
-  /* Огибающая удара бочки и удержание вокальной фразы без дёргания на каждом слоге */
   if(sig.isBeat){
     aiKickEnv=Math.min(1,0.58+led[0]*0.42+sig.transient*0.24);
   }else{
@@ -889,7 +1199,6 @@ function runAiDirector(sig,t,dt){
     aiTargetHue=vocalActive?vocH:baseH;
   }
 
-  /* Кратчайший переход по цветовому кругу без грязных промежуточных оттенков */
   var glideMs=isBreak?650:(isDrop?85:g.glide);
   aiHue=shortHueLerp(aiHue,aiTargetHue,1-Math.exp(-dt/glideMs));
 
@@ -914,14 +1223,12 @@ function runAiDirector(sig,t,dt){
 
   var outRgb=hsv(aiHue,isBreak?0.86:1.0,Math.min(1,aiVal));
 
-  /* Снэр окрашивается в акцентный цвет жанра, а не размывает ленту в белый */
   if(sig.snareFlash>0.16&&soloMode!=='kick'&&!isBreak){
     var snCol=hsv(accH,0.82,1);
     var snMix=sig.snareFlash*(isDrop?0.68:0.48);
     outRgb=mixRgb(outRgb,snCol,snMix);
   }
 
-  /* Лёгкие искры на тарелках только на энергичных моментах */
   if(flux[2]>0.068&&lvl[2]>0.26&&phraseEnergy>0.32){
     aiSpark=Math.min(1,aiSpark+flux[2]*(isDrop?1.35:0.85));
   }
@@ -1111,12 +1418,12 @@ function preAnalyzeTrack(trackObj,preloadedAb){
   var bufPromise=preloadedAb?Promise.resolve(preloadedAb):readBlobBuffer(trackObj.blob);
   bufPromise.then(function(ab){
     var OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-    var ctx=OAC?new OAC(1,1,22050):(actx||new (window.AudioContext||window.webkitAudioContext)());
+    var ctx=OAC?new OAC(1,128,44100):(actx||new (window.AudioContext||window.webkitAudioContext)());
     return ctx.decodeAudioData(ab);
   }).then(function(buf){
     var ch0=buf.getChannelData(0);
     var ch1=buf.numberOfChannels>1?buf.getChannelData(1):null;
-    var sr=buf.sampleRate||22050;
+    var sr=buf.sampleRate||44100;
     var N=120,len=ch0.length,step=Math.max(1,Math.floor(len/N));
     var aLp=Math.min(0.35,(2*Math.PI*130)/sr);
     var aMid=Math.min(0.65,(2*Math.PI*2200)/sr);
@@ -1148,7 +1455,6 @@ function preAnalyzeTrack(trackObj,preloadedAb){
       rmsAll+=rSeg;bAll+=bSeg;mAll+=mSeg;hAll+=hSeg;
     }
 
-    /* Оценка BPM по пикам энергии на отрезке до 45 секунд */
     var envStep=Math.max(1,Math.floor(sr*0.02));
     var maxSamples=Math.min(len,Math.floor(sr*45));
     var envArr=[],eSum,eCnt,k,m;
@@ -1385,7 +1691,7 @@ function onPlay(){
 }
 function attachAudio(){
   audio.addEventListener('play',onPlay);
-  audio.addEventListener('timeupdate',syncDeckUI);
+  audio.addEventListener('timeupdate',function(){syncDeckUI();drawTrackMap();});
   audio.addEventListener('loadedmetadata',syncDeckUI);
   audio.addEventListener('pause',function(){
     if(recreating)return;
@@ -1579,6 +1885,7 @@ function guessAudioMime(name){
 }
 var playSeq=0;
 function playBlob(b,name,onBuf){
+  if(!b)return;
   var seq=++playSeq;
   nowName=name||'';
   $('pTitle').textContent=nowName||'Трек не выбран';
@@ -1738,8 +2045,11 @@ document.querySelectorAll('[data-sun]').forEach(function(b){
   };
 });
 
-/* Восстановление настроек музыки */
+/* Восстановление настроек цвета, эффектов и музыки */
 (function(){
+  setColor(loadCfg('color','#ff0000'),true);
+  setBright(+loadCfg('bright','100'),true);
+  speed=+loadCfg('speed','5');$('speed').value=speed;$('spv').textContent=speed;
   setMusicMode(loadCfg('mmode','auto'),true);
   setVPal(loadCfg('vpal','auto'),true);
   setSoloMode(loadCfg('solo','all'),true);
@@ -1859,7 +2169,7 @@ function updateCarMode(forceSend){
     }
   }
   if(bright!==targetB||forceSend){
-    setBright(targetB);
+    setBright(targetB,false);
     if(!mode)sendStatic(true);
   }
 }
@@ -1897,8 +2207,14 @@ $('carOn').onclick=function(){
   saveCfg('car-on',carOn?'1':'0');
   $('carOn').textContent='Авто-свет в салоне: '+(carOn?'вкл':'выкл');
   $('carOn').className=carOn?'sel':'alt';
-  if(carOn&&carSrc==='geo'&&carLat===null)requestCarGeo();
-  updateCarMode(true);
+  if(carOn){
+    if(carSrc==='geo'&&carLat===null)requestCarGeo();
+    updateCarMode(true);
+  }else{
+    setBright(manualBright,false);
+    if(!mode)sendStatic(true);
+    updateCarMode(false);
+  }
 };
 document.querySelectorAll('[data-csrc]').forEach(function(b){
   b.onclick=function(){setCarSrc(b.getAttribute('data-csrc'));};
