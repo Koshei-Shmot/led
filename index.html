@@ -6,7 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>LED лента</title>
 <style>
-:root{--bg:#0b0b14;--bg2:#1a1a30;--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.1);--text:#f2f2f7;--muted:#9a9ab0;--a1:#7c5cff;--a2:#22d3ee;--btn:rgba(255,255,255,.08);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:border-box}
+:root{--bg:#0b0b14;--bg2:#1a1a30;--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.1);--text:#f2f2f7;--muted:#9a9ab0;--a1:#7c5cff;--a2:#22d3ee;--btn:rgba(255,255,255,.08);color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 :root[data-theme="light"]{--bg:#f2f3f8;--bg2:#dfe2f2;--card:#fff;--line:rgba(0,0,0,.08);--text:#14141f;--muted:#6b6b80;--btn:rgba(0,0,0,.06);color-scheme:light}
 html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
 body{margin:0 auto;min-height:100vh;background:linear-gradient(160deg,var(--bg),var(--bg2)) fixed;color:var(--text);font-family:-apple-system,system-ui,sans-serif;padding:16px;max-width:480px}
@@ -71,14 +72,14 @@ label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
 
 <div id="t3" class="card hid">
 <label>Добавь музыку из «Файлов»: она сохранится в списке</label>
-<input type="file" id="file" multiple>
+<input type="file" id="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac,.aac" multiple>
 <audio id="audio" controls playsinline style="margin-top:8px"></audio>
 <div class="row"><button class="alt" id="prev">⏮</button><button class="alt" id="next">⏭</button><button class="alt" id="shuf">🔀</button><button class="sel" id="rep">🔁</button></div>
 <div id="lib"></div>
 <button class="sel" id="lt" style="margin-top:10px">Свет под музыку: вкл</button>
 <label>Выкл = обычный плеер: музыка играет и при заблокированном экране, но без света</label>
 <button class="sel" id="amb" style="margin-top:8px">Подложка в тишине: вкл</button>
-<label>В тихих проигрышах и на паузе лента мягко «дышит» цветом с первой вкладки (5–8%)</label>
+<label>В тихих проигрышах и на паузе лента мягко «дышит» цветом с первой вкладки</label>
 <div class="grid" style="margin-top:10px">
 <button class="alt sel" data-m="spec">Частоты</button>
 <button class="alt" data-m="pulse">Пульс</button>
@@ -87,12 +88,14 @@ label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
 <button class="alt" data-m="rgbbeat">RGB Бит</button>
 <button class="alt" data-m="virtuoso">Виртуоз</button>
 </div>
+<div id="bandBox" style="opacity:.45;transition:opacity .2s">
 <label>Реагировать на (для Пульса, Бита, Радуги, Виртуоза):</label>
 <div class="row">
 <button class="alt sel" data-s="0">Бас</button>
 <button class="alt" data-s="1">Голос</button>
 <button class="alt" data-s="2">Верх</button>
 <button class="alt" data-s="3">Всё</button>
+</div>
 </div>
 <label>Чувствительность</label>
 <input type="range" id="sens" min="50" max="200" value="100">
@@ -123,9 +126,11 @@ label{display:block;color:var(--muted);font-size:14px;margin:10px 0 6px}
 
 <script>
 var werr=0,ch=null,color=[255,0,0],bright=100,fadeK=1,busy=false,pending=null,mode=null,raf=0,lastSend=0,speed=5;
+var lastSentRGB=[-1,-1,-1];
 var st=document.getElementById('status');
 function $(i){return document.getElementById(i);}
 function errText(e){return 'Ошибка: '+((e&&(e.name||e.message))?((e.name||'')+' '+(e.message||'')).trim():String(e));}
+
 function write(p){
   if(!ch)return;
   if(busy){pending=p;return;}
@@ -134,10 +139,15 @@ function write(p){
   .catch(function(){werr++;$('ver').textContent='версия 10 · ошибок записи: '+werr;})
   .then(function(){busy=false;if(pending){var q=pending;pending=null;write(q);}});
 }
-function sendRGB(r,g,b){
-  write([r,g,b].map(function(v){return Math.max(0,Math.min(255,Math.round(v*fadeK)));}));
+
+function sendRGB(r,g,b,force){
+  var out=[r,g,b].map(function(v){return Math.max(0,Math.min(255,Math.round(v*fadeK)));});
+  if(!force&&out[0]===lastSentRGB[0]&&out[1]===lastSentRGB[1]&&out[2]===lastSentRGB[2])return;
+  lastSentRGB=out;
+  write(out);
 }
-function sendStatic(){var k=bright/100;sendRGB(color[0]*k,color[1]*k,color[2]*k);}
+
+function sendStatic(force){var k=bright/100;sendRGB(color[0]*k,color[1]*k,color[2]*k,force);}
 function touch(){if(!timerEnd)fadeK=1;}
 function hex2rgb(h){return [parseInt(h.substr(1,2),16),parseInt(h.substr(3,2),16),parseInt(h.substr(5,2),16)];}
 function hsv(h,s,v){var f=function(n){var k=(n+h/60)%6;return v*(1-s*Math.max(0,Math.min(k,4-k,1)))*255;};return [f(5),f(3),f(1)];}
@@ -147,12 +157,17 @@ $('conn').onclick=function(){
   st.textContent='Поиск...';
   navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:['0000ffe0-0000-1000-8000-00805f9b34fb']})
   .then(function(d){
-    d.addEventListener('gattserverdisconnected',function(){ch=null;busy=false;pending=null;st.textContent='Отключено';});
+    d.addEventListener('gattserverdisconnected',function(){ch=null;busy=false;pending=null;lastSentRGB=[-1,-1,-1];st.textContent='Отключено';});
     return d.gatt.connect();
   })
   .then(function(s){return s.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');})
   .then(function(s){return s.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');})
-  .then(function(c){ch=c;busy=false;pending=null;st.textContent='Подключено';sendStatic();})
+  .then(function(c){
+    ch=c;busy=false;pending=null;werr=0;lastSentRGB=[-1,-1,-1];
+    $('ver').textContent='версия 10';
+    st.textContent='Подключено';
+    sendStatic(true);
+  })
   .catch(function(e){st.textContent=errText(e);});
 };
 
@@ -166,13 +181,13 @@ document.querySelectorAll('#tabs button').forEach(function(b){
 
 /* Цвет */
 function setBright(v){bright=v;$('bright').value=v;$('bv').textContent=v;}
-$('color').oninput=function(e){touch();setMode(null,true);color=hex2rgb(e.target.value);sendStatic();};
-$('bright').oninput=function(e){touch();setBright(+e.target.value);if(!mode)sendStatic();};
-$('on').onclick=function(){touch();setMode(null,true);setBright(Math.max(bright,10));sendStatic();};
-$('off').onclick=function(){setMode(null,true);sendRGB(0,0,0);};
+$('color').oninput=function(e){touch();setMode(null,true);color=hex2rgb(e.target.value);sendStatic(true);};
+$('bright').oninput=function(e){touch();setBright(+e.target.value);if(!mode)sendStatic(true);};
+$('on').onclick=function(){touch();setMode(null,true);setBright(Math.max(bright,10));sendStatic(true);};
+$('off').onclick=function(){setMode(null,true);sendRGB(0,0,0,true);};
 ['#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff','#ffffff'].forEach(function(h){
   var b=document.createElement('button');b.className='sw';b.style.background=h;
-  b.onclick=function(){touch();setMode(null,true);$('color').value=h;color=hex2rgb(h);sendStatic();};
+  b.onclick=function(){touch();setMode(null,true);$('color').value=h;color=hex2rgb(h);sendStatic(true);};
   $('presets').appendChild(b);
 });
 
@@ -184,17 +199,30 @@ function setMode(m,quiet){
   document.querySelectorAll('#fx button').forEach(function(b){b.className=(b.getAttribute('data-fx')===m)?'sel':'alt';});
   if(m){
     touch();
-    if(m!=='music'&&audio&&!audio.paused)audio.pause();
+    if(m!=='music'&&m!=='ambient'&&audio&&!audio.paused)audio.pause();
+    lastSentRGB=[-1,-1,-1];
     raf=requestAnimationFrame(tick);
-  }else if(!quiet){setTimeout(sendStatic,150);}
+  }else if(!quiet){
+    setTimeout(function(){sendStatic(true);},120);
+  }
 }
+
 function tick(t){
   raf=requestAnimationFrame(tick);
   var c=(mode==='music')?musicFrame():effectFrame(t);
-  if(!c||t-lastSend<30)return;
+  if(!c||t-lastSend<42)return;
   lastSend=t;
   var v=bright/100;
-  sendRGB(c[0]*v,c[1]*v,c[2]*v);
+  sendRGB(c[0]*v,c[1]*v,c[2]*v,false);
+}
+
+/* Подложка с учётом мёртвой зоны дешёвых контроллеров */
+function ambientColor(t){
+  var wave=0.08+0.05*((Math.sin(t*0.0022)+1)/2);
+  var mx=Math.max(color[0],color[1],color[2],1);
+  var minScale=14/mx;
+  var k=Math.max(wave,minScale);
+  return [color[0]*k,color[1]*k,color[2]*k];
 }
 
 /* Эффекты */
@@ -214,11 +242,10 @@ function effectFrame(t){
     case 'sunrise':
       var p=Math.min(1,(t-sunT0)/sunDur);
       var from=p<0.5?[255,0,0]:[255,90,0],to=p<0.5?[255,90,0]:[255,190,90],q=p<0.5?p*2:(p-0.5)*2;
-      var k=Math.max(0.02,p);
+      var k=Math.max(0.04,p);
       c=[(from[0]+(to[0]-from[0])*q)*k,(from[1]+(to[1]-from[1])*q)*k,(from[2]+(to[2]-from[2])*q)*k];break;
     case 'ambient':
-      var ab=0.05+0.03*((Math.sin(t*0.0022)+1)/2);
-      c=[color[0]*ab,color[1]*ab,color[2]*ab];break;
+      c=ambientColor(t);break;
     default:return null;
   }
   return c;
@@ -233,9 +260,19 @@ $('speed').oninput=function(e){speed=+e.target.value;};
 
 /* Музыка */
 var audio=$('audio'),musicMode='spec',actx=null,anFile=null,dly=null,data=null;
-var envPeak=[0.18,0.16,0.18,0.18],envFloor=[0,0,0,0],sm=[0,0,0,0],prevLvl=[0,0,0,0],fluxAvg=[0.04,0.04,0.04,0.04];
+var envPeak=[0.24,0.20,0.18,0.24],sm=[0,0,0,0],prevRaw=[0,0,0,0],fluxAvg=[0.025,0.025,0.025,0.025];
 var hue=0,vHue=280,vStep=0,lastBeat=0,flash=0,vPulse=0,vSpark=0,lastBandBeat=[0,0,0],bandFlash=[0,0,0],lastT=0,srcBand=0;
 var ambOn=true,ambMix=0,rawBeats=[],lastRawBeat=0;
+
+function resetAudioStats(){
+  envPeak=[0.24,0.20,0.18,0.24];
+  sm=[0,0,0,0];
+  prevRaw=[0,0,0,0];
+  fluxAvg=[0.025,0.025,0.025,0.025];
+  bandFlash=[0,0,0];
+  flash=0;vPulse=0;vSpark=0;
+  rawBeats=[];
+}
 
 function initAudio(){
   if(!actx){
@@ -247,7 +284,9 @@ function initAudio(){
   var src=actx.createMediaElementSource(audio);
   anFile=actx.createAnalyser();
   anFile.fftSize=4096;
-  anFile.smoothingTimeConstant=0.25;
+  anFile.minDecibels=-75;
+  anFile.maxDecibels=-10;
+  anFile.smoothingTimeConstant=0.2;
   data=new Uint8Array(anFile.frequencyBinCount);
   src.connect(anFile);
   dly=actx.createDelay(1);
@@ -256,7 +295,7 @@ function initAudio(){
   dly.connect(actx.destination);
 }
 
-/* Анализ полосы: энергия (RMS) + верхние пики нот (topK), чтобы не терять мелодию и бас */
+/* Анализ полосы: баланс энергии (RMS) и пиков нот (topK) */
 function analyzeRange(a,b,topCount,peakWeight){
   if(b<=a)b=a+1;
   if(b>data.length)b=data.length;
@@ -296,49 +335,48 @@ function musicFrame(){
   var sr=(actx&&actx.sampleRate)?actx.sampleRate:48000;
   var binHz=sr/anFile.fftSize;
 
-  /* Чёткие диапазоны с защитными интервалами: Бас 35-155 Гц, Голос/мелодия 240-2200 Гц, Верх 3800-12000 Гц */
-  var b0=Math.max(1,Math.round(35/binHz));
-  var b1=Math.max(b0+2,Math.round(155/binHz));
-  var m0=Math.max(b1+2,Math.round(240/binHz));
+  /* Разделение частот: Бас 32-150 Гц, Голос/мелодия 220-2200 Гц, Верх 4000-12000 Гц */
+  var b0=Math.max(1,Math.round(32/binHz));
+  var b1=Math.max(b0+2,Math.round(150/binHz));
+  var m0=Math.max(b1+2,Math.round(220/binHz));
   var m1=Math.max(m0+4,Math.round(2200/binHz));
-  var h0=Math.max(m1+4,Math.round(3800/binHz));
+  var h0=Math.max(m1+4,Math.round(4000/binHz));
   var h1=Math.min(data.length,Math.max(h0+4,Math.round(12000/binHz)));
 
-  var rawBass=analyzeRange(b0,b1,2,0.55);
-  var rawMid=analyzeRange(m0,m1,6,0.65);
-  var rawHigh=analyzeRange(h0,h1,4,0.22);
-  var rawAll=Math.max(rawBass,rawMid*0.95,rawHigh*0.75);
+  var rawBass=analyzeRange(b0,b1,2,0.60);
+  var rawMid=analyzeRange(m0,m1,5,0.65);
+  var rawHigh=analyzeRange(h0,h1,4,0.35);
+  var rawAll=Math.max(rawBass,rawMid,rawHigh*0.85);
   var raw=[rawBass,rawMid,rawHigh,rawAll];
 
   var gain=$('sens').value/100;
   var lvl=[],led=[],flux=[],i;
-  var relTimes=[115,105,80,105];
-  var peakDecay=Math.exp(-dt/2400);
-  var flAlpha=1-Math.exp(-dt/240);
+  var minPeaks=[0.22,0.18,0.16,0.22];
+  var gates=[0.04,0.035,0.055,0.04];
+  var relTimes=[125,105,75,110];
+  var peakDecay=Math.exp(-dt/3200);
+  var flAlpha=1-Math.exp(-dt/220);
 
   for(i=0;i<4;i++){
-    if(raw[i]<envFloor[i]){
-      envFloor[i]=envFloor[i]*0.85+raw[i]*0.15;
-    }else{
-      envFloor[i]=envFloor[i]*0.997+raw[i]*0.003;
-    }
-    envPeak[i]=Math.max(raw[i],envPeak[i]*peakDecay,envFloor[i]+0.06);
-    var span=Math.max(0.05,envPeak[i]-envFloor[i]);
-    lvl[i]=Math.max(0,Math.min(1,((raw[i]-envFloor[i])/span)*gain));
+    envPeak[i]=Math.max(raw[i],envPeak[i]*peakDecay,minPeaks[i]);
+    var clean=Math.max(0,raw[i]-gates[i]);
+    var span=Math.max(0.10,envPeak[i]-gates[i]);
+    lvl[i]=Math.max(0,Math.min(1,(clean/span)*gain));
 
-    var att=1-Math.exp(-dt/16);
+    var att=1-Math.exp(-dt/12);
     var rel=1-Math.exp(-dt/relTimes[i]);
     sm[i]+=(lvl[i]-sm[i])*(lvl[i]>sm[i]?att:rel);
-    led[i]=Math.pow(Math.max(0,Math.min(1,sm[i])),1.35);
+    led[i]=Math.pow(Math.max(0,Math.min(1,sm[i])),1.25);
 
-    flux[i]=Math.max(0,lvl[i]-prevLvl[i]);
-    prevLvl[i]=lvl[i];
+    var dRaw=Math.max(0,raw[i]-prevRaw[i])/span;
+    prevRaw[i]=raw[i];
+    flux[i]=dRaw*gain;
     fluxAvg[i]=fluxAvg[i]*(1-flAlpha)+flux[i]*flAlpha;
   }
 
-  /* Запись необработанных ударов для авто-калибровки задержки по 4 тапам */
-  var thrAny=Math.max(0.045,fluxAvg[3]*1.35)/Math.sqrt(gain);
-  if(lvl[3]>0.20&&flux[3]>thrAny&&t-lastRawBeat>155){
+  /* Запись атак ритма для авто-калибровки по 4 тапам */
+  var thrAny=Math.max(0.05,fluxAvg[3]*1.4);
+  if(lvl[3]>0.22&&flux[3]>thrAny&&t-lastRawBeat>160){
     lastRawBeat=t;
     rawBeats.push(t);
     if(rawBeats.length>24)rawBeats.shift();
@@ -346,12 +384,12 @@ function musicFrame(){
 
   /* Плавная фоновая подложка в тихих проигрышах внутри трека */
   var totalE=Math.max(led[0],led[1],led[2]);
-  var targetAmb=(ambOn&&totalE<0.14)?Math.min(1,(0.14-totalE)/0.10):0;
-  ambMix+=(targetAmb-ambMix)*(1-Math.exp(-dt/(targetAmb>ambMix?300:100)));
+  var targetAmb=(ambOn&&totalE<0.12)?Math.min(1,(0.12-totalE)/0.09):0;
+  ambMix+=(targetAmb-ambMix)*(1-Math.exp(-dt/(targetAmb>ambMix?280:90)));
   function withAmb(rgb){
     if(!ambOn||ambMix<=0.01)return rgb;
-    var ab=(0.05+0.03*((Math.sin(t*0.0022)+1)/2))*ambMix;
-    return [Math.max(rgb[0],color[0]*ab),Math.max(rgb[1],color[1]*ab),Math.max(rgb[2],color[2]*ab)];
+    var ac=ambientColor(t);
+    return [Math.max(rgb[0],ac[0]*ambMix),Math.max(rgb[1],ac[1]*ambMix),Math.max(rgb[2],ac[2]*ambMix)];
   }
 
   for(i=0;i<3;i++)$('b'+(i+1)).style.height=(2+led[i]*46)+'px';
@@ -362,34 +400,34 @@ function musicFrame(){
 
   /* 2. RGB Бит: вспышки ударов по каждой полосе отдельно */
   if(musicMode==='rgbbeat'){
-    var bRels=[140,115,85];
+    var bRels=[145,115,80];
     for(i=0;i<3;i++){
-      var thrI=Math.max(0.045,fluxAvg[i]*1.38)/Math.sqrt(gain);
-      if(lvl[i]>0.18&&flux[i]>thrI&&t-lastBandBeat[i]>125){
+      var thrI=Math.max(0.055,fluxAvg[i]*1.45);
+      if(lvl[i]>0.20&&flux[i]>thrI&&t-lastBandBeat[i]>130){
         lastBandBeat[i]=t;
-        bandFlash[i]=Math.min(1,0.68+lvl[i]*0.42);
+        bandFlash[i]=Math.min(1,0.72+lvl[i]*0.35);
       }
-      bandFlash[i]=Math.max(0.02,bandFlash[i]*Math.exp(-dt/bRels[i]));
+      bandFlash[i]=Math.max(0,bandFlash[i]*Math.exp(-dt/bRels[i]));
     }
     return withAmb([bandFlash[0]*255,bandFlash[1]*255,bandFlash[2]*255]);
   }
 
-  /* 3. Виртуоз: переливы под мелодию, гармонические смены оттенка на битах и искры на верхах */
+  /* 3. Виртуоз: переливы под мелодию и бас, смена гармонии на битах и искры на верхах */
   if(musicMode==='virtuoso'){
-    var thrV=Math.max(0.045,fluxAvg[s]*1.4)/Math.sqrt(gain);
-    vHue=(vHue+dt*(0.012+led[1]*0.06+led[0]*0.035))%360;
-    if(lvl[s]>0.20&&flux[s]>thrV&&t-lastBeat>175){
+    var thrV=Math.max(0.055,fluxAvg[s]*1.45);
+    vHue=(vHue+dt*(0.014+led[1]*0.065+led[0]*0.04))%360;
+    if(lvl[s]>0.22&&flux[s]>thrV&&t-lastBeat>175){
       lastBeat=t;
       vStep=(vStep+1)%2;
-      vHue=(vHue+(vStep?62:135))%360;
+      vHue=(vHue+(vStep?65:138))%360;
       vPulse=1;
     }
     vPulse=Math.max(0,vPulse*Math.exp(-dt/200));
-    if(flux[2]>0.07&&lvl[2]>0.32)vSpark=Math.min(1,vSpark+flux[2]*1.3);
-    vSpark*=Math.exp(-dt/90);
-    var sat=Math.max(0.64,1-vSpark*0.32);
-    var energy=Math.min(1,led[0]*0.46+led[1]*0.46+led[2]*0.24);
-    var val=Math.min(1,0.06+energy*0.62+vPulse*0.36);
+    if(flux[2]>0.08&&lvl[2]>0.30)vSpark=Math.min(1,vSpark+flux[2]*1.35);
+    vSpark*=Math.exp(-dt/85);
+    var sat=Math.max(0.65,1-vSpark*0.30);
+    var energy=Math.min(1,led[0]*0.48+led[1]*0.48+led[2]*0.25);
+    var val=Math.min(1,0.05+energy*0.64+vPulse*0.35);
     return withAmb(hsv(vHue,sat,val));
   }
 
@@ -400,11 +438,11 @@ function musicFrame(){
   if(musicMode==='rain'){hue=(hue+dt*0.03*(0.2+led[s]*2.4))%360;return withAmb(hsv(hue,1,0.06+0.94*led[s]));}
 
   /* 6. Бит */
-  var thr=Math.max(0.05,fluxAvg[s]*1.45)/Math.sqrt(gain);
+  var thr=Math.max(0.055,fluxAvg[s]*1.48);
   if(lvl[s]>0.22&&flux[s]>thr&&t-lastBeat>165){
     lastBeat=t;hue=(hue+53)%360;flash=1;
   }
-  flash=Math.max(0.03,flash*Math.exp(-dt/185));
+  flash=Math.max(0,flash*Math.exp(-dt/185));
   return withAmb(hsv(hue,1,flash));
 }
 
@@ -412,6 +450,8 @@ document.querySelectorAll('[data-m]').forEach(function(b){
   b.onclick=function(){
     musicMode=b.getAttribute('data-m');
     document.querySelectorAll('[data-m]').forEach(function(x){x.className=(x===b)?'alt sel':'alt';});
+    var useBand=(musicMode!=='spec'&&musicMode!=='rgbbeat');
+    $('bandBox').style.opacity=useBand?'1':'0.45';
   };
 });
 document.querySelectorAll('[data-s]').forEach(function(b){
@@ -421,7 +461,7 @@ document.querySelectorAll('[data-s]').forEach(function(b){
   };
 });
 
-var lightOn=true,shuffle=false,repeatAll=true,recreating=false;
+var lightOn=true,shuffle=false,repeatAll=true,recreating=false,curBlobUrl=null;
 function onPlay(){
   if(lightOn){initAudio();setMode('music');}else{setMode(null,true);}
 }
@@ -455,7 +495,10 @@ function recreateAudio(){
   if(!lightOn&&(mode==='music'||mode==='ambient'))setMode(null,true);
   if(u){
     a.src=u;
-    a.addEventListener('loadedmetadata',function(){try{a.currentTime=pos;}catch(e){}if(was)a.play().catch(function(){});},{once:true});
+    a.addEventListener('loadedmetadata',function(){
+      try{a.currentTime=pos;}catch(e){}
+      if(was){if(lightOn)initAudio();a.play().catch(function(){});}
+    },{once:true});
   }
 }
 $('lt').onclick=function(){
@@ -468,16 +511,18 @@ $('amb').onclick=function(){
   ambOn=!ambOn;
   $('amb').textContent='Подложка в тишине: '+(ambOn?'вкл':'выкл');
   $('amb').className=ambOn?'sel':'alt';
-  if(!ambOn&&mode==='ambient'){setMode(null,true);sendRGB(0,0,0);}
+  if(!ambOn&&mode==='ambient'){setMode(null,true);sendRGB(0,0,0,true);}
 };
-$('prev').onclick=function(){nextTrack(-1);};
-$('next').onclick=function(){nextTrack(1);};
+$('prev').onclick=function(){if(lightOn)initAudio();nextTrack(-1);};
+$('next').onclick=function(){if(lightOn)initAudio();nextTrack(1);};
 $('shuf').onclick=function(){shuffle=!shuffle;$('shuf').className=shuffle?'sel':'alt';};
 $('rep').onclick=function(){repeatAll=!repeatAll;$('rep').className=repeatAll?'sel':'alt';};
 $('file').onchange=function(e){
   var fs=e.target.files;if(!fs.length)return;
+  if(lightOn)initAudio();
   for(var i=0;i<fs.length;i++)saveTrack(fs[i]);
   playBlob(fs[0],fs[0].name);
+  e.target.value='';
 };
 attachAudio();
 
@@ -509,7 +554,7 @@ function renderLib(){
     var row=document.createElement('div');row.className='trk';
     var n=document.createElement('span');n.textContent=(i===cur?'▶ ':'')+v.name;
     if(i===cur)n.style.color='var(--a2)';
-    n.onclick=function(){playIndex(i);};
+    n.onclick=function(){if(lightOn)initAudio();playIndex(i);};
     var x=document.createElement('b');x.textContent='✕';x.onclick=function(){delTrack(v.id);};
     row.appendChild(n);row.appendChild(x);box.appendChild(row);
   });
@@ -532,7 +577,10 @@ function setMeta(name){
 }
 function playBlob(b,name){
   nowName=name||'';
-  audio.src=URL.createObjectURL(b);
+  resetAudioStats();
+  if(curBlobUrl)URL.revokeObjectURL(curBlobUrl);
+  curBlobUrl=URL.createObjectURL(b);
+  audio.src=curBlobUrl;
   audio.play().catch(function(){});
   setMeta(nowName);
 }
@@ -632,7 +680,7 @@ var timerEnd=0,timerDur=0;
 document.querySelectorAll('[data-sleep]').forEach(function(b){
   b.onclick=function(){
     var m=+b.getAttribute('data-sleep');
-    if(!m){timerEnd=0;fadeK=1;$('tinfo').textContent='';if(!mode)sendStatic();return;}
+    if(!m){timerEnd=0;fadeK=1;$('tinfo').textContent='';if(!mode)sendStatic(true);return;}
     timerDur=m*60000;timerEnd=Date.now()+timerDur;fadeK=1;
   };
 });
@@ -642,11 +690,11 @@ setInterval(function(){
   if(left<=0){
     timerEnd=0;fadeK=0;$('tinfo').textContent='Выключено';
     audio.pause();setMode(null,true);
-    sendRGB(0,0,0);return;
+    sendRGB(0,0,0,true);return;
   }
   fadeK=Math.min(1,left/Math.min(timerDur,300000));
   $('tinfo').textContent='Осталось: '+Math.ceil(left/60000)+' мин';
-  if(!mode)sendStatic();
+  if(!mode)sendStatic(false);
 },300);
 document.querySelectorAll('[data-sun]').forEach(function(b){
   b.onclick=function(){
