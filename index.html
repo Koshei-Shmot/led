@@ -123,7 +123,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 </head>
 <body>
 <div class="top">
-  <div class="brand"><h1>LED лента</h1><span id="ver">версия 32.3</span></div>
+  <div class="brand"><h1>LED лента</h1><span id="ver">версия 32.4</span></div>
   <button id="theme" class="alt ic">День</button>
 </div>
 <div class="card conn-card">
@@ -328,9 +328,10 @@ var busy=false,pending=null,pendingPrio=false,mode=null,raf=0,lastSend=0,speed=5
 var lastSentRGB=[-1,-1,-1],lastGlowT=0,sunDur=60000,sunT0=0,curFx='rainbow';
 var st=document.getElementById('status');
 function $(i){return document.getElementById(i);}
-function errText(e){
-  if(e===2||String(e)==='2')return 'Сбой Bluetooth (код 2) — проверьте, что лента не занята другим приложением';
-  return 'Ошибка: '+((e&&(e.name||e.message))?((e.name||'')+' '+(e.message||'')).trim():String(e));
+function errText(e,step){
+  var prefix=step?(' ('+step+')'):'';
+  if(e===2||String(e)==='2')return 'Сбой Bluetooth код 2'+prefix;
+  return 'Ошибка'+prefix+': '+((e&&(e.name||e.message))?((e.name||'')+' '+(e.message||'')).trim():String(e));
 }
 function saveCfg(k,v){try{localStorage.setItem('led-'+k,String(v));}catch(e){}}
 function loadCfg(k,d){try{var v=localStorage.getItem('led-'+k);return v===null?d:v;}catch(e){return d;}}
@@ -387,7 +388,7 @@ function write(p,prio){
   var pkt=new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]);
   try{
     bleSendPkt(pkt).catch(function(){
-      if(ch){werr++;$('ver').textContent='версия 32.3 · сбоев: '+werr;}
+      if(ch){werr++;$('ver').textContent='версия 32.4 · сбоев: '+werr;}
     }).then(function(){
       busy=false;
       if(pending){
@@ -398,7 +399,7 @@ function write(p,prio){
     });
   }catch(e){
     busy=false;
-    if(ch){werr++;$('ver').textContent='версия 32.3 · сбоев: '+werr;}
+    if(ch){werr++;$('ver').textContent='версия 32.4 · сбоев: '+werr;}
   }
 }
 
@@ -445,22 +446,12 @@ function setBright(v,isManual){
   $('bv').textContent=bright;
 }
 
-function setColor(hex,skipSave){
-  if(!/^#[0-9a-fA-F]{6}$/.test(hex))return;
-  var r=parseInt(hex.slice(1,3),16);
-  var g=parseInt(hex.slice(3,5),16);
-  var b=parseInt(hex.slice(5,7),16);
-  color=[r,g,b];
-  $('color').value=hex.toLowerCase();
-  $('colorHex').textContent=hex.toUpperCase();
-  setLedGlow(r,g,b,true);
-  document.querySelectorAll('#presets button').forEach(function(sw){
-    sw.classList.toggle('active',sw.getAttribute('data-c')===hex.toLowerCase());
-  });
-  if(!skipSave)saveCfg('color',hex.toLowerCase());
-}
+/* Подключение Bluetooth (ELK-BLEDOM, строковые 128-бит UUID для Bluefy и Chrome) */
+var BLE_SVC='0000fff0-0000-1000-8000-00805f9b34fb';
+var BLE_CHR='0000fff3-0000-1000-8000-00805f9b34fb';
+var BLE_SVC_ALT='0000ffe0-0000-1000-8000-00805f9b34fb';
+var BLE_CHR_ALT='0000ffe1-0000-1000-8000-00805f9b34fb';
 
-/* Подключение Bluetooth (ELK-BLEDOM, совместимо с Bluefy и Chrome) */
 function onBleDisconnect(){
   ch=null;busy=false;pending=null;pendingPrio=false;
   st.textContent='Отключено';
@@ -477,32 +468,42 @@ $('conn').onclick=function(){
     st.textContent='Нужен браузер с Web Bluetooth (Bluefy / Chrome)';
     return;
   }
+  var bleStep='поиск';
   st.textContent='Поиск ленты...';
   navigator.bluetooth.requestDevice({
     acceptAllDevices:true,
-    optionalServices:[0xFFF0]
+    optionalServices:[BLE_SVC,BLE_SVC_ALT]
   }).then(function(dev){
     if(bleDev)bleDev.removeEventListener('gattserverdisconnected',onBleDisconnect);
     bleDev=dev;
     bleDev.addEventListener('gattserverdisconnected',onBleDisconnect);
+    bleStep='соединение';
     st.textContent='Подключение...';
     return dev.gatt.connect();
   }).then(function(srv){
+    bleStep='служба';
     st.textContent='Поиск канала...';
-    return srv.getPrimaryService(0xFFF0);
-  }).then(function(svc){
-    return svc.getCharacteristic(0xFFF3);
+    return srv.getPrimaryService(BLE_SVC).then(function(svc){
+      bleStep='канал';
+      return svc.getCharacteristic(BLE_CHR);
+    }).catch(function(){
+      bleStep='служба 2';
+      return srv.getPrimaryService(BLE_SVC_ALT).then(function(svc2){
+        bleStep='канал 2';
+        return svc2.getCharacteristic(BLE_CHR_ALT);
+      });
+    });
   }).then(function(c){
     ch=c;busy=false;pending=null;pendingPrio=false;werr=0;lastSentRGB=[-1,-1,-1];
     useWriteNoResp=!isIOS&&!(c.properties&&c.properties.writeWithoutResponse===false);
-    $('ver').textContent='версия 32.3';
+    $('ver').textContent='версия 32.4';
     st.textContent='Подключено';
     $('conn').textContent='Отключить';
     setTimeout(function(){if(ch)sendStatic(true);},90);
   }).catch(function(e){
     ch=null;busy=false;
     $('conn').textContent='Подключиться';
-    st.textContent=(e&&e.name==='NotFoundError')?'Выбор отменён':errText(e);
+    st.textContent=(e&&e.name==='NotFoundError')?'Выбор отменён':errText(e,bleStep);
   });
 };
 
