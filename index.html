@@ -123,7 +123,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 </head>
 <body>
 <div class="top">
-  <div class="brand"><h1>LED лента</h1><span id="ver">версия 32.2</span></div>
+  <div class="brand"><h1>LED лента</h1><span id="ver">версия 32.3</span></div>
   <button id="theme" class="alt ic">День</button>
 </div>
 <div class="card conn-card">
@@ -387,7 +387,7 @@ function write(p,prio){
   var pkt=new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]);
   try{
     bleSendPkt(pkt).catch(function(){
-      if(ch){werr++;$('ver').textContent='версия 32.2 · сбоев: '+werr;}
+      if(ch){werr++;$('ver').textContent='версия 32.3 · сбоев: '+werr;}
     }).then(function(){
       busy=false;
       if(pending){
@@ -398,7 +398,7 @@ function write(p,prio){
     });
   }catch(e){
     busy=false;
-    if(ch){werr++;$('ver').textContent='версия 32.2 · сбоев: '+werr;}
+    if(ch){werr++;$('ver').textContent='версия 32.3 · сбоев: '+werr;}
   }
 }
 
@@ -460,40 +460,6 @@ function setColor(hex,skipSave){
   if(!skipSave)saveCfg('color',hex.toLowerCase());
 }
 
-/* Подключение Bluetooth (ELK-BLEDOM и совместимые контроллеры) */
-function onBleDisconnect(){
-  ch=null;busy=false;pending=null;pendingPrio=false;
-  st.textContent='Отключено';
-  $('conn').textContent='Подключиться';
-}
-
-function connectGattRetry(dev,tries){
-  return dev.gatt.connect().catch(function(e){
-    if(tries<=1)throw e;
-    return new Promise(function(res){setTimeout(res,350);}).then(function(){
-      return connectGattRetry(dev,tries-1);
-    });
-  });
-}
-
-function findBleChar(srv){
-  return srv.getPrimaryService(0xFFF0).then(function(svc){
-    return svc.getCharacteristic(0xFFF3);
-  }).catch(function(){
-    return srv.getPrimaryServices().then(function(svcs){
-      var idx=0;
-      function nextSvc(){
-        if(idx>=svcs.length)return Promise.reject(new Error('Не найдена характеристика ленты'));
-        var s=svcs[idx++];
-        return s.getCharacteristics().then(function(chars){
-          var i,c;
-          for(i=0;i<chars.length;i++){
-            c=chars[i];
-            if(c.uuid&&c.uuid.indexOf('0000fff3')===0)return c;
-          }
-          for(i=0;i<chars.length;i++){
-            c=chars[i];
-            if(c.properties&&(c.properties.writeWithoutResponse||c.properties.write))return c;
 /* Подключение Bluetooth (ELK-BLEDOM, совместимо с Bluefy и Chrome) */
 function onBleDisconnect(){
   ch=null;busy=false;pending=null;pendingPrio=false;
@@ -529,7 +495,7 @@ $('conn').onclick=function(){
   }).then(function(c){
     ch=c;busy=false;pending=null;pendingPrio=false;werr=0;lastSentRGB=[-1,-1,-1];
     useWriteNoResp=!isIOS&&!(c.properties&&c.properties.writeWithoutResponse===false);
-    $('ver').textContent='версия 32.2';
+    $('ver').textContent='версия 32.3';
     st.textContent='Подключено';
     $('conn').textContent='Отключить';
     setTimeout(function(){if(ch)sendStatic(true);},90);
