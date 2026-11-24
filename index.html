@@ -84,7 +84,7 @@ input[type=range]::-moz-range-thumb{
 }
 .file-btn{
   display:block;text-align:center;padding:11px 14px;border-radius:13px;background:var(--btn);
-  border:1px dashed var(--line2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;text-transform:none;letter-spacing:0
+  border:1px dashed var(--line2);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;text-transform:none;letter-spacing:0
 }
 .file-btn input{display:none}
 .sw{height:36px;padding:0;flex:1;border-radius:99px;border:2px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 2px rgba(255,255,255,.25)}
@@ -110,20 +110,38 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 #tmap{width:100%;height:36px;border-radius:11px;background:var(--card2);border:1px solid var(--line);margin-top:8px;display:block;cursor:pointer}
 .pads{display:flex;gap:7px;margin-top:8px}
 .pads button{padding:11px 4px;font-size:12px;border-radius:12px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.ai-hub{
+  display:flex;align-items:center;gap:10px;margin-top:9px;padding:8px 10px;
+  border-radius:14px;background:var(--card2);border:1px solid var(--line)
+}
+.ai-cube{
+  width:44px;height:44px;border-radius:13px;flex-shrink:0;background:#08080e;
+  border:1.5px solid rgba(var(--led),.55);
+  box-shadow:0 0 14px rgba(var(--led),.28),inset 0 1px 6px rgba(255,255,255,.06);
+  display:flex;align-items:center;justify-content:center;transition:border-color .15s,box-shadow .15s
+}
+.ai-cube svg{width:34px;height:24px;overflow:visible}
+.ai-eye{
+  fill:none;stroke:rgb(var(--led));stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 4px rgba(var(--led),.85));transition:d .14s ease,transform .1s ease
+}
+.ai-thought-box{flex:1;min-width:0}
+#aiThought{font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tele{font-size:10.5px;font-weight:500;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
 .subtabs{display:flex;gap:4px;margin:12px 0 8px;padding:3px;background:var(--card2);border:1px solid var(--line);border-radius:12px}
 .subtabs button{padding:8px 2px;font-size:11px;border-radius:9px;border:0;box-shadow:none}
-.bars{display:flex;gap:8px;height:44px;align-items:flex-end;margin-top:8px;padding:0 2px}
+.bars{display:flex;gap:8px;height:42px;align-items:flex-end;margin-top:8px;padding:0 2px}
 .bars div{flex:1;border-radius:5px 5px 2px 2px;height:2px;transition:height .05s linear}
 .blbls{display:flex;gap:6px;margin-top:6px;text-align:center;font-size:10px;line-height:1.35;color:var(--muted)}
 .blbls span{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:5px 2px}
 .blbls b{display:block;color:var(--text);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
-.tele{margin-top:8px;padding:7px 10px;border-radius:11px;background:var(--card2);border:1px solid var(--line);font-size:11px;font-weight:500;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+.tele-line{margin-top:6px;padding:7px 10px;border-radius:11px;background:var(--card2);border:1px solid var(--line);font-size:11px;font-weight:500;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
 .hid{display:none}
 </style>
 </head>
 <body>
 <div class="top">
-  <div class="brand"><h1>LED лента</h1><span id="ver">версия 32.4</span></div>
+  <div class="brand"><h1>LED лента</h1><span id="ver">версия 33.0</span></div>
   <button id="theme" class="alt ic">День</button>
 </div>
 <div class="card conn-card">
@@ -174,18 +192,29 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 <button class="alt" id="padFlash">Вспышка</button>
 <button class="alt" id="padDrop">Яма</button>
 </div>
-<div class="tele" id="tele">Ожидание трека</div>
+<div class="ai-hub">
+  <div class="ai-cube" id="aiCube">
+    <svg viewBox="0 0 34 24">
+      <path id="eyeL" class="ai-eye" d="M 6,9 L 6,15"/>
+      <path id="eyeR" class="ai-eye" d="M 28,9 L 28,15"/>
+    </svg>
+  </div>
+  <div class="ai-thought-box">
+    <div id="aiThought">Нейросеть готова · Жду музыку</div>
+    <div id="tele">Ожидание трека</div>
+  </div>
+</div>
 <div class="bars"><div id="b1" style="background:#f33"></div><div id="b2" style="background:#3c3"></div><div id="b3" style="background:#38f"></div></div>
 <div class="blbls">
-<span>Бас (32-115 Гц)<b id="db1">-- дБ · 0%</b></span>
-<span>Голос/СЧ (0.25-2.2 кГц)<b id="db2">-- дБ · 0%</b></span>
-<span>Верх (4.0-13.5 кГц)<b id="db3">-- дБ · 0%</b></span>
+<span>Бас (30-145 Гц)<b id="db1">-- дБ · 0%</b></span>
+<span>Голос/СЧ (0.26-2.4 кГц)<b id="db2">-- дБ · 0%</b></span>
+<span>Верх (3.5-14 кГц)<b id="db3">-- дБ · 0%</b></span>
 </div>
 
 <div class="subtabs" id="mtabs">
 <button data-mt="mt1" class="sel">Плейлист</button>
 <button data-mt="mt2" class="alt">Режимы и Соло</button>
-<button data-mt="mt3" class="alt">Жанр и Ритм</button>
+<button data-mt="mt3" class="alt">Жанр и ИИ</button>
 </div>
 
 <div id="mt1">
@@ -197,7 +226,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 <div id="mt2" class="hid">
 <label>Режим светомузыки</label>
 <div class="grid">
-<button class="alt sel" data-m="auto">ИИ-Режиссёр</button>
+<button class="alt sel" data-m="auto">Нейро-ИИ</button>
 <button class="alt" data-m="virtuoso">Виртуоз</button>
 <button class="alt" data-m="spec">Частоты</button>
 <button class="alt" data-m="rgbbeat">RGB Бит</button>
@@ -241,7 +270,21 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 <label style="text-transform:none;letter-spacing:0;font-weight:500">Выкл = фоновый плеер при заблокированном экране, но без света</label>
 <button class="sel" id="amb" style="margin-top:8px">Подложка в тишине: вкл</button>
 
-<label style="margin-top:12px">База жанров (определяет цвета и характер ИИ)</label>
+<label style="margin-top:12px">Обучение нейросети (16→20→6 MLP)</label>
+<div class="tele-line" id="aiStat">Поколение 1 · Опыт: 0 · Нота: -- · Тон: --</div>
+<div class="grid" style="margin-top:8px">
+<button class="alt" id="aiLike">Нравится свет</button>
+<button class="alt" id="aiDrive">Больше драйва</button>
+<button class="alt" id="aiSoft">Мягче</button>
+<button class="alt" id="aiShiftPal">Смени палитру</button>
+</div>
+<div class="row">
+<button class="alt" id="aiExport">Сохранить мозг</button>
+<label class="file-btn" style="flex:1;padding:10px 4px;border-style:solid">Загрузить мозг<input type="file" id="aiImport" accept=".json,application/json"></label>
+<button class="alt" id="aiReset" style="width:auto;padding:10px 12px">Сброс</button>
+</div>
+
+<label style="margin-top:12px">База жанров (цвета и характер ИИ)</label>
 <div class="grid4">
 <button class="alt sel" data-g="auto">Авто (ИИ)</button>
 <button class="alt" data-g="phonk">Фонк</button>
@@ -263,7 +306,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 
 <label>Чувствительность: <span id="sv">100</span>%</label>
 <input type="range" id="sens" min="50" max="200" value="100">
-<label>Задержка звука: <span id="dv">200</span> мс</label>
+<label>Задержка звука (Bluetooth Lookahead): <span id="dv">200</span> мс</label>
 <input type="range" id="dly" min="0" max="600" value="200">
 <div class="row"><button class="alt" id="dlym">-25 мс</button><button class="alt" id="dlyp">+25 мс</button></div>
 <button class="alt" id="tapSync" style="margin-top:8px">Поймать ритм (4 тапа)</button>
@@ -273,7 +316,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 
 <div id="t4" class="card hid">
 <button class="alt" id="carOn">Авто-свет в салоне: выкл</button>
-<div class="tele" id="carStatus">Режим салона выключен</div>
+<div class="tele-line" id="carStatus">Режим салона выключен</div>
 
 <label style="margin-top:12px">Определение времени суток</label>
 <div class="row">
@@ -321,6 +364,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 </div>
 </div>
 
+<script src="./ai/brain.js?v=33.0"></script>
 <script>
 var werr=0,bleDev=null,ch=null,isIOS=/iPhone|iPad|iPod|Bluefy/i.test(navigator.userAgent||''),useWriteNoResp=!isIOS;
 var color=[255,0,0],bright=100,manualBright=100,fadeK=1;
@@ -347,23 +391,80 @@ function hsv(h,s,v){
   else{r=c;b=x;}
   return [(r+m)*255,(g+m)*255,(b+m)*255];
 }
-
 function mixRgb(a,b,t){
   t=Math.max(0,Math.min(1,t));
   return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
 }
-
 function ambientColor(t){
   var h=(t*0.008)%360;
   var breath=0.11+0.05*Math.sin(t*0.0014);
   return hsv(h,0.82,breath);
 }
 
+/* Обновление подсветки интерфейса и глаз робота-кубика в цвет RGB-ленты */
+var eyeMood='idle',eyeScale=1,eyeHappyUntil=0,lastBlinkT=0,blinkEnd=0;
 function setLedGlow(r,g,b,force){
   var now=performance.now();
-  if(!force&&now-lastGlowT<110)return;
+  if(!force&&now-lastGlowT<45)return;
   lastGlowT=now;
-  document.documentElement.style.setProperty('--led',Math.round(r)+','+Math.round(g)+','+Math.round(b));
+  var gr=Math.round(r),gg=Math.round(g),gb=Math.round(b);
+  if(gr+gg+gb<28){
+    var m=Math.max(gr,gg,gb,1);
+    var k=28/m;
+    gr=Math.min(255,Math.round(gr*k));
+    gg=Math.min(255,Math.round(gg*k));
+    gb=Math.min(255,Math.round(gb*k));
+  }
+  document.documentElement.style.setProperty('--led',gr+','+gg+','+gb);
+}
+
+function updateRobotEyes(t,mood,pulse){
+  var eL=$('eyeL'),eR=$('eyeR');
+  if(!eL||!eR)return;
+  if(t<eyeHappyUntil)mood='happy';
+  if(t-lastBlinkT>3400+Math.sin(t*0.001)*800){
+    lastBlinkT=t;
+    blinkEnd=t+130;
+  }
+  var blinking=(t<blinkEnd&&mood!=='drop'&&mood!=='happy');
+  var dL='M 7,9 L 7,15',dR='M 27,9 L 27,15';
+  if(blinking||mood==='off'){
+    dL='M 4,12 L 11,12';
+    dR='M 23,12 L 30,12';
+  }else if(mood==='happy'||mood==='vocal'){
+    dL='M 4,14 Q 7.5,7 11,14';
+    dR='M 23,14 Q 26.5,7 30,14';
+  }else if(mood==='build'){
+    dL='M 4,10 L 11,13 L 4,16';
+    dR='M 30,10 L 23,13 L 30,16';
+  }else if(mood==='drop'){
+    dL='M 7.5,7 L 7.5,17';
+    dR='M 26.5,7 L 26.5,17';
+  }
+  if(eL.getAttribute('d')!==dL)eL.setAttribute('d',dL);
+  if(eR.getAttribute('d')!==dR)eR.setAttribute('d',dR);
+  var sc=1+(pulse||0)*0.24;
+  eL.style.transform='scale('+sc.toFixed(2)+')';
+  eL.style.transformOrigin='7.5px 12px';
+  eR.style.transform='scale('+sc.toFixed(2)+')';
+  eR.style.transformOrigin='26.5px 12px';
+}
+
+function setColor(hex,skipSave){
+  if(!hex||hex.charAt(0)!=='#')hex='#ff0000';
+  if(hex.length===4)hex='#'+hex[1]+hex[1]+hex[2]+hex[2]+hex[3]+hex[3];
+  var n=parseInt(hex.slice(1),16);
+  if(isNaN(n))n=0xff0000;
+  color=[(n>>16)&255,(n>>8)&255,n&255];
+  var h2=function(v){var s=v.toString(16);return s.length<2?'0'+s:s;};
+  var norm='#'+h2(color[0])+h2(color[1])+h2(color[2]);
+  $('color').value=norm;
+  $('colorHex').textContent=norm.toUpperCase();
+  setLedGlow(color[0],color[1],color[2],true);
+  document.querySelectorAll('#presets .sw').forEach(function(sw){
+    sw.classList.toggle('active',sw.getAttribute('data-c')===norm);
+  });
+  if(!skipSave)saveCfg('color',norm);
 }
 
 /* Умная очередь Bluetooth с приоритетом удара и поддержкой Bluefy / Chrome */
@@ -376,33 +477,33 @@ function bleSendPkt(pkt){
   }
   return ch.writeValue?ch.writeValue(pkt):ch.writeValueWithResponse(pkt);
 }
-
-function write(p,prio){
+function writeRaw(pkt,prio){
   if(!ch)return;
   if(busy){
-    pending=p;
+    pending=pkt;
     if(prio)pendingPrio=true;
     return;
   }
   busy=true;
-  var pkt=new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]);
   try{
     bleSendPkt(pkt).catch(function(){
-      if(ch){werr++;$('ver').textContent='версия 32.4 · сбоев: '+werr;}
+      if(ch){werr++;$('ver').textContent='версия 33.0 · сбоев: '+werr;}
     }).then(function(){
       busy=false;
       if(pending){
         var nxt=pending,pr=pendingPrio;
         pending=null;pendingPrio=false;
-        write(nxt,pr);
+        writeRaw(nxt,pr);
       }
     });
   }catch(e){
     busy=false;
-    if(ch){werr++;$('ver').textContent='версия 32.4 · сбоев: '+werr;}
+    if(ch){werr++;$('ver').textContent='версия 33.0 · сбоев: '+werr;}
   }
 }
-
+function write(p,prio){
+  writeRaw(new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]),prio);
+}
 function sendRGB(r,g,b,force,prio){
   var k=(bright/100)*fadeK;
   var rr=r*k,gg=g*k,bb=b*k;
@@ -431,19 +532,11 @@ function sendRGB(r,g,b,force,prio){
   lastSentRGB=[rr,gg,bb];
   write([rr,gg,bb],prio);
 }
-
-function sendStatic(force){
-  sendRGB(color[0],color[1],color[2],force,true);
-}
-
+function sendStatic(force){sendRGB(color[0],color[1],color[2],force,true);}
 function setBright(v,isManual){
   bright=Math.max(0,Math.min(100,Math.round(+v||0)));
-  if(isManual){
-    manualBright=bright;
-    saveCfg('bright',bright);
-  }
-  $('bright').value=bright;
-  $('bv').textContent=bright;
+  if(isManual){manualBright=bright;saveCfg('bright',bright);}
+  $('bright').value=bright;$('bv').textContent=bright;
 }
 
 /* Подключение Bluetooth (ELK-BLEDOM, строковые 128-бит UUID для Bluefy и Chrome) */
@@ -457,17 +550,11 @@ function onBleDisconnect(){
   st.textContent='Отключено';
   $('conn').textContent='Подключиться';
 }
-
 $('conn').onclick=function(){
   if(ch&&bleDev&&bleDev.gatt&&bleDev.gatt.connected){
-    bleDev.gatt.disconnect();
-    onBleDisconnect();
-    return;
+    bleDev.gatt.disconnect();onBleDisconnect();return;
   }
-  if(!navigator.bluetooth){
-    st.textContent='Нужен браузер с Web Bluetooth (Bluefy / Chrome)';
-    return;
-  }
+  if(!navigator.bluetooth){st.textContent='Нужен браузер с Web Bluetooth (Bluefy / Chrome)';return;}
   var bleStep='поиск';
   st.textContent='Поиск ленты...';
   navigator.bluetooth.requestDevice({
@@ -477,32 +564,27 @@ $('conn').onclick=function(){
     if(bleDev)bleDev.removeEventListener('gattserverdisconnected',onBleDisconnect);
     bleDev=dev;
     bleDev.addEventListener('gattserverdisconnected',onBleDisconnect);
-    bleStep='соединение';
-    st.textContent='Подключение...';
+    bleStep='соединение';st.textContent='Подключение...';
     return dev.gatt.connect();
   }).then(function(srv){
-    bleStep='служба';
-    st.textContent='Поиск канала...';
+    bleStep='служба';st.textContent='Поиск канала...';
     return srv.getPrimaryService(BLE_SVC).then(function(svc){
-      bleStep='канал';
-      return svc.getCharacteristic(BLE_CHR);
+      bleStep='канал';return svc.getCharacteristic(BLE_CHR);
     }).catch(function(){
       bleStep='служба 2';
       return srv.getPrimaryService(BLE_SVC_ALT).then(function(svc2){
-        bleStep='канал 2';
-        return svc2.getCharacteristic(BLE_CHR_ALT);
+        bleStep='канал 2';return svc2.getCharacteristic(BLE_CHR_ALT);
       });
     });
   }).then(function(c){
     ch=c;busy=false;pending=null;pendingPrio=false;werr=0;lastSentRGB=[-1,-1,-1];
     useWriteNoResp=!isIOS&&!(c.properties&&c.properties.writeWithoutResponse===false);
-    $('ver').textContent='версия 32.4';
+    $('ver').textContent='версия 33.0';
     st.textContent='Подключено';
     $('conn').textContent='Отключить';
     setTimeout(function(){if(ch)sendStatic(true);},90);
   }).catch(function(e){
-    ch=null;busy=false;
-    $('conn').textContent='Подключиться';
+    ch=null;busy=false;$('conn').textContent='Подключиться';
     st.textContent=(e&&e.name==='NotFoundError')?'Выбор отменён':errText(e,bleStep);
   });
 };
@@ -516,7 +598,6 @@ document.querySelectorAll('#tabs button').forEach(function(b){
     if(id==='t3')drawTrackMap();
   };
 });
-
 document.querySelectorAll('#mtabs button').forEach(function(b){
   b.onclick=function(){
     var id=b.getAttribute('data-mt');
@@ -527,121 +608,53 @@ document.querySelectorAll('#mtabs button').forEach(function(b){
 
 /* Вкладка 1: Цвет и пресеты */
 $('color').oninput=function(e){
-  setColor(e.target.value);
-  if(!mode)sendStatic(false);
+  fadeK=1;if(bright===0)setBright(manualBright||100,true);
+  setColor(e.target.value);setMode(null,true);sendStatic(false);
 };
-$('bright').oninput=function(e){
-  setBright(e.target.value,true);
-  if(!mode)sendStatic(false);
-};
+$('bright').oninput=function(e){setBright(e.target.value,true);if(!mode)sendStatic(false);};
 $('on').onclick=function(){
-  fadeK=1;
-  if(bright===0)setBright(100,true);
+  fadeK=1;if(bright===0)setBright(manualBright||100,true);
   setMode(null,true);
-  sendStatic(true);
+  writeRaw(new Uint8Array([0x7E,0x04,0x04,0x01,0x00,0x01,0xFF,0x00,0xEF]),true);
+  setTimeout(function(){sendStatic(true);},60);
 };
-$('off').onclick=function(){
-  audio.pause();
-  setMode(null,true);
-  sendRGB(0,0,0,true,true);
-};
-
+$('off').onclick=function(){audio.pause();setMode(null,true);sendRGB(0,0,0,true,true);};
 (function(){
   var cols=['#ff0000','#ff6a00','#ffd000','#00e640','#00d4ff','#1a4dff','#9d00ff','#ffffff'];
   var box=$('presets');
   cols.forEach(function(c){
-    var b=document.createElement('button');
-    b.className='sw';
-    b.style.background=c;
-    b.setAttribute('data-c',c);
-    b.onclick=function(){
-      fadeK=1;
-      setColor(c);
-      setMode(null,true);
-      sendStatic(true);
-    };
+    var b=document.createElement('button');b.className='sw';b.style.background=c;b.setAttribute('data-c',c);
+    b.onclick=function(){fadeK=1;if(bright===0)setBright(manualBright||100,true);setColor(c);setMode(null,true);sendStatic(true);};
     box.appendChild(b);
   });
 })();
 
 /* Вкладка 2: Эффекты, рассвет и единый цикл анимации */
 var FX_LIST=[
-  {id:'rainbow',name:'Радуга'},
-  {id:'breath',name:'Дыхание'},
-  {id:'aurora',name:'Сияние'},
-  {id:'fire',name:'Огонь'},
-  {id:'cyber',name:'Киберпанк'},
-  {id:'strobe',name:'Стробоскоп'},
-  {id:'police',name:'Полиция'},
-  {id:'fade',name:'Перелив'}
+  {id:'rainbow',name:'Радуга'},{id:'breath',name:'Дыхание'},{id:'aurora',name:'Сияние'},{id:'fire',name:'Огонь'},
+  {id:'cyber',name:'Киберпанк'},{id:'strobe',name:'Стробоскоп'},{id:'police',name:'Полиция'},{id:'fade',name:'Перелив'}
 ];
-
 (function(){
   var box=$('fx');
   FX_LIST.forEach(function(item){
-    var b=document.createElement('button');
-    b.className='alt';
-    b.textContent=item.name;
-    b.setAttribute('data-fx',item.id);
-    b.onclick=function(){
-      curFx=item.id;
-      setMode('fx');
-    };
+    var b=document.createElement('button');b.className='alt';b.textContent=item.name;b.setAttribute('data-fx',item.id);
+    b.onclick=function(){curFx=item.id;setMode('fx');};
     box.appendChild(b);
   });
 })();
-
-$('speed').oninput=function(e){
-  speed=+e.target.value;
-  $('spv').textContent=speed;
-  saveCfg('speed',speed);
-};
+$('speed').oninput=function(e){speed=+e.target.value;$('spv').textContent=speed;saveCfg('speed',speed);};
 $('fxstop').onclick=function(){setMode(null);};
 
 function effectFrame(t){
   var sp=0.35+speed*0.28;
-  if(curFx==='rainbow'){
-    return hsv((t*0.03*sp)%360,1,1);
-  }
-  if(curFx==='breath'){
-    var w=(Math.sin(t*0.0022*sp)+1)/2;
-    var k=0.06+0.94*(w*w);
-    return [color[0]*k,color[1]*k,color[2]*k];
-  }
-  if(curFx==='aurora'){
-    var a1=(Math.sin(t*0.0011*sp)+1)/2;
-    var a2=(Math.sin(t*0.0007*sp+1.7)+1)/2;
-    var h=135+a1*95+a2*35;
-    return hsv(h,0.92,0.55+0.45*a2);
-  }
-  if(curFx==='fire'){
-    var f1=Math.sin(t*0.009*sp)*0.5+0.5;
-    var f2=Math.sin(t*0.023*sp+2.1)*0.5+0.5;
-    var fl=0.45+0.55*(f1*0.65+f2*0.35);
-    return [255*fl,(32+58*f1)*fl,0];
-  }
-  if(curFx==='cyber'){
-    var cy=(Math.sin(t*0.0018*sp)+1)/2;
-    var base=mixRgb([255,0,128],[0,235,255],cy);
-    var gl=Math.sin(t*0.037*sp)>0.96?1:0;
-    return gl?[255,255,255]:base;
-  }
-  if(curFx==='strobe'){
-    var ph=(t*0.004*sp)%1;
-    return ph<0.35?[color[0],color[1],color[2]]:[0,0,0];
-  }
-  if(curFx==='police'){
-    var cyc=(t*0.0022*sp)%2;
-    if(cyc<1){
-      var p1=(cyc*3)%1;
-      return p1<0.45?[255,0,0]:[0,0,0];
-    }else{
-      var p2=((cyc-1)*3)%1;
-      return p2<0.45?[0,40,255]:[0,0,0];
-    }
-  }
-  var stepIdx=Math.floor((t*0.0012*sp)%6);
-  return hsv(stepIdx*60,1,1);
+  if(curFx==='rainbow')return hsv((t*0.03*sp)%360,1,1);
+  if(curFx==='breath'){var w=(Math.sin(t*0.0022*sp)+1)/2,k=0.06+0.94*(w*w);return [color[0]*k,color[1]*k,color[2]*k];}
+  if(curFx==='aurora'){var a1=(Math.sin(t*0.0011*sp)+1)/2,a2=(Math.sin(t*0.0007*sp+1.7)+1)/2;return hsv(135+a1*95+a2*35,0.92,0.55+0.45*a2);}
+  if(curFx==='fire'){var f1=Math.sin(t*0.009*sp)*0.5+0.5,f2=Math.sin(t*0.023*sp+2.1)*0.5+0.5,fl=0.45+0.55*(f1*0.65+f2*0.35);return [255*fl,(32+58*f1)*fl,0];}
+  if(curFx==='cyber'){var cy=(Math.sin(t*0.0018*sp)+1)/2,base=mixRgb([255,0,128],[0,235,255],cy);return Math.sin(t*0.037*sp)>0.96?[255,255,255]:base;}
+  if(curFx==='strobe')return ((t*0.004*sp)%1)<0.35?[color[0],color[1],color[2]]:[0,0,0];
+  if(curFx==='police'){var cyc=(t*0.0022*sp)%2;return cyc<1?(((cyc*3)%1)<0.45?[255,0,0]:[0,0,0]):((((cyc-1)*3)%1)<0.45?[0,40,255]:[0,0,0]);}
+  return hsv(Math.floor((t*0.0012*sp)%6)*60,1,1);
 }
 
 function loop(t){
@@ -652,19 +665,13 @@ function loop(t){
   }else if(mode==='ambient'){
     var ac=ambientColor(t);
     sendRGB(ac[0],ac[1],ac[2],false,false);
+    updateRobotEyes(t,'idle',0.05);
   }else if(mode==='sunrise'){
     var p=Math.min(1,Math.max(0,(t-sunT0)/Math.max(1000,sunDur)));
-    var c1=[255,14,0],c2=[255,115,12],c3=[255,228,180];
-    var sc=p<0.5?mixRgb(c1,c2,p*2):mixRgb(c2,c3,(p-0.5)*2);
+    var sc=p<0.5?mixRgb([255,14,0],[255,115,12],p*2):mixRgb([255,115,12],[255,228,180],(p-0.5)*2);
     var sk=0.06+0.94*Math.pow(p,1.4);
     sendRGB(sc[0]*sk,sc[1]*sk,sc[2]*sk,false,false);
-    if(p>=1){
-      color=[255,228,180];
-      setColor('#ffe4b4',true);
-      setMode(null,true);
-      sendStatic(true);
-      return;
-    }
+    if(p>=1){color=[255,228,180];setColor('#ffe4b4',true);setMode(null,true);sendStatic(true);return;}
   }else{
     var fxRgb=effectFrame(t);
     sendRGB(fxRgb[0],fxRgb[1],fxRgb[2],false,curFx==='strobe'||curFx==='police');
@@ -678,213 +685,119 @@ function setMode(m,quiet){
   document.querySelectorAll('#fx button').forEach(function(b){
     b.className=(m==='fx'&&b.getAttribute('data-fx')===curFx)?'sel':'alt';
   });
-  if(m){
-    wakeOn();
-    raf=requestAnimationFrame(loop);
-  }else{
-    wakeOff();
-    if(!quiet)sendStatic(true);
-  }
+  if(m){wakeOn();raf=requestAnimationFrame(loop);}
+  else{wakeOff();if(!quiet)sendStatic(true);}
 }
 
 /* =====================================================================
-   БАЗА ДАННЫХ ЖАНРОВ (15 ПРОФИЛЕЙ) И ИИ-СВЕТОРЕЖИССЁР
+   ПОДКЛЮЧЕНИЕ МОДУЛЯ НЕЙРОСЕТИ (ai/brain.js + ai/genres.json + ai/weights.json)
    ===================================================================== */
-var GENRE_DB={
-  phonk:{
-    name:'Фонк',
-    kw:['phonk','фонк','drift','дрифт','cowbell','memphis','kordhell','lxst','ghostface','pharm'],
-    bpm:126,bass:0.48,mid:0.28,high:0.24,crest:3.2,
-    mul:[1.20,0.94,1.06,1.12],rel:[100,110,64,98],
-    hues:[352,278,318],punch:1.38,glide:140
-  },
-  trap:{
-    name:'Трэп',
-    kw:['trap','трэп','808','atlanta','metro','travis','carti','pharaoh','big baby'],
-    bpm:140,bass:0.46,mid:0.31,high:0.23,crest:3.0,
-    mul:[1.18,1.00,1.08,1.10],rel:[110,115,65,105],
-    hues:[268,354,34],punch:1.32,glide:160
-  },
-  edm:{
-    name:'EDM / Клуб',
-    kw:['edm','club','клуб','festival','big room','electro','remix','ремикс','garrix','guetta','tiesto'],
-    bpm:128,bass:0.41,mid:0.29,high:0.30,crest:2.8,
-    mul:[1.14,0.98,1.14,1.08],rel:[108,108,66,102],
-    hues:[194,322,46],punch:1.28,glide:150
-  },
-  house:{
-    name:'Хаус / Дип',
-    kw:['house','хаус','deep','дип','tech house','slap','tropical','ibiza','meduza','imanbek'],
-    bpm:122,bass:0.40,mid:0.36,high:0.24,crest:2.4,
-    mul:[1.12,1.06,1.02,1.06],rel:[122,125,75,115],
-    hues:[176,26,204],punch:1.16,glide:220
-  },
-  techno:{
-    name:'Техно',
-    kw:['techno','техно','rave','рейв','acid','hardstyle','хардстайл','industrial','de witte','brejcha'],
-    bpm:136,bass:0.45,mid:0.25,high:0.30,crest:3.1,
-    mul:[1.22,0.90,1.16,1.14],rel:[92,98,58,90],
-    hues:[216,356,186],punch:1.42,glide:95
-  },
-  dnb:{
-    name:'Драм-н-Бейс',
-    kw:['dnb','drum','bass','драм','neuro','liquid','jungle','pendulum','sub focus','netsky'],
-    bpm:174,bass:0.42,mid:0.27,high:0.31,crest:3.0,
-    mul:[1.16,0.96,1.18,1.12],rel:[88,95,55,88],
-    hues:[136,192,286],punch:1.36,glide:110
-  },
-  dubstep:{
-    name:'Дабстеп',
-    kw:['dubstep','дабстеп','wobble','riddim','brostep','skrillex','excision','zeds'],
-    bpm:145,bass:0.47,mid:0.31,high:0.22,crest:3.3,
-    mul:[1.22,1.02,1.05,1.14],rel:[105,105,62,98],
-    hues:[114,274,182],punch:1.40,glide:120
-  },
-  hiphop:{
-    name:'Хип-Хоп',
-    kw:['hip','hop','rap','рэп','хип','хоп','beat','бит','drill','дрилл','freestyle','скриптонит','oxxxy','basta'],
-    bpm:94,bass:0.41,mid:0.39,high:0.20,crest:2.6,
-    mul:[1.12,1.14,0.98,1.06],rel:[125,130,78,115],
-    hues:[258,36,14],punch:1.18,glide:210
-  },
-  pop:{
-    name:'Поп',
-    kw:['pop','поп','dance','танц','cover','кавер','radio','hit','хит','weeknd','dua','artik','zivert'],
-    bpm:116,bass:0.30,mid:0.45,high:0.25,crest:2.2,
-    mul:[0.98,1.18,1.05,1.05],rel:[128,138,80,118],
-    hues:[338,184,42],punch:1.05,glide:240
-  },
-  rnb:{
-    name:'R&B / Соул',
-    kw:['rnb','r&b','soul','соул','smooth','slow','velvet','frank','sza','jhene','jah'],
-    bpm:88,bass:0.35,mid:0.45,high:0.20,crest:2.0,
-    mul:[1.02,1.20,0.96,1.02],rel:[148,155,95,135],
-    hues:[314,28,266],punch:0.92,glide:320
-  },
-  rock:{
-    name:'Рок',
-    kw:['rock','рок','punk','панк','guitar','гитар','grunge','альтер','кино','король','сплин','земфира','linkin'],
-    bpm:130,bass:0.31,mid:0.41,high:0.28,crest:2.7,
-    mul:[1.06,1.12,1.15,1.08],rel:[112,112,70,105],
-    hues:[12,44,214],punch:1.22,glide:160
-  },
-  metal:{
-    name:'Метал',
-    kw:['metal','метал','core','кор','thrash','death','heavy','doom','slipknot','rammstein','metallica'],
-    bpm:156,bass:0.34,mid:0.37,high:0.29,crest:3.1,
-    mul:[1.14,1.08,1.18,1.12],rel:[92,96,58,90],
-    hues:[0,210,32],punch:1.38,glide:100
-  },
-  synth:{
-    name:'Синтвейв',
-    kw:['synth','синт','wave','вейв','retro','ретро','cyber','кибер','outrun','80s','night','ночь','kavinsky'],
-    bpm:108,bass:0.35,mid:0.37,high:0.28,crest:2.3,
-    mul:[1.05,1.10,1.08,1.05],rel:[135,140,84,122],
-    hues:[326,186,252],punch:1.06,glide:260
-  },
-  lofi:{
-    name:'Лоу-фай',
-    kw:['lofi','lo-fi','лоу','chill','чилл','ambient','эмбиент','sleep','сон','piano','пиано','jazz','джаз','relax'],
-    bpm:82,bass:0.32,mid:0.48,high:0.20,crest:1.9,
-    mul:[0.94,1.16,0.92,1.00],rel:[160,170,105,145],
-    hues:[32,164,344],punch:0.84,glide:380
-  },
-  cinematic:{
-    name:'Саундтрек',
-    kw:['ost','soundtrack','саундтрек','epic','эпик','orchestra','оркестр','hans','zimmer','interstellar','score'],
-    bpm:96,bass:0.36,mid:0.42,high:0.22,crest:2.5,
-    mul:[1.08,1.15,1.02,1.06],rel:[155,165,95,140],
-    hues:[156,42,224],punch:1.08,glide:340
-  }
-};
-var GENRE_KEYS=['phonk','trap','edm','house','techno','dnb','dubstep','hiphop','pop','rnb','rock','metal','synth','lofi','cinematic'];
+var BRAIN=window.LedBrain||null;
+if(!BRAIN){
+  /* Аварийный резерв, если index.html запущен локально без папки ai/ */
+  BRAIN={
+    genres:{pop:{name:'Поп',kw:[],bpm:116,bass:0.30,mid:0.45,high:0.25,crest:2.2,mul:[1,1.15,1.05,1.05],rel:[125,135,80,115],hues:[338,184,42],punch:1.05,glide:240}},
+    genreKeys:['pop'],
+    mem:{xp:0,gen:1,genres:{}},
+    init:function(){},
+    getGenre:function(){return this.genres.pop;},
+    detectHint:function(){return '';},
+    classify:function(){return 'pop';},
+    forward:function(){return [0.2,0.2,0.5,0.5,0.3,0.2];},
+    trainAction:function(){},
+    exportData:function(){return '{}';},
+    importData:function(){return false;},
+    reset:function(){}
+  };
+}
+BRAIN.init('./ai/genres.json?v=33.0','./ai/weights.json?v=33.0',function(){
+  updateAiStatUI();
+  renderLib();
+});
+
+var NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+var MAJ_PROF=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+var MIN_PROF=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
 
 var audio=$('audio'),musicMode='auto',soloMode='all',trackGenre='auto',antiMud=true,vPalMode='auto';
 var detectedGenre='pop',fileHintGenre='',lastGenreEval=0;
 var actx=null,anFile=null,dly=null,freqFloat=null,timeFloat=null;
-var envPeak=[0.14,0.11,0.09,0.14],sm=[0,0,0,0],prevLin=[0,0,0,0],fluxAvg=[0.02,0.02,0.02,0.02];
+var envPeak=[0.075,0.08,0.032,0.085],sm=[0,0,0,0],prevLin=[0,0,0,0],fluxAvg=[0.015,0.015,0.015,0.015];
 var mudFloor=[0,0,0],mudCut=0,lastMudHit=0;
-var hue=0,lastBeat=0,flash=0;
-var lastBandBeat=[0,0,0],bandFlash=[0,0,0],lastT=0,srcBand=0;
+var hue=0,lastBeat=0,flash=0,lastBandBeat=[0,0,0],bandFlash=[0,0,0],lastT=0,srcBand=0;
 var ambOn=true,ambMix=0,rawBeats=[],lastRawBeat=0;
-var beatIntervals=[],estBpm=0,beatPeriod=500,beatPhase=0,barBeat=0;
-var vocalEnv=0,snareFlash=0,lastSnare=0;
+var beatIntervals=[],estBpm=0,beatPeriod=500,pllPhase=0,pllPeriod=500,pllLock=0,barBeat=0;
+var vocalEnv=0,vocalConf=0,snareFlash=0,lastSnare=0,snareHistory=[],fillIntensity=0;
+var trackChroma=[0,0,0,0,0,0,0,0,0,0,0,0],curNoteIdx=-1,curNoteConf=0,songKey={root:-1,minor:false,name:'--'};
 var aiHue=338,aiTargetHue=338,aiVal=0,aiSpark=0,aiKickEnv=0,aiVocalHold=0,phraseEnergy=0,buildProg=0;
+var lastNetX=null,lastNetY=null;
 var vBaseHue=352,vVocalHue=188,vTargetBase=352,vTargetVocal=188,vSpark=0,lastPalShift=0;
 var shortEnergy=0,longEnergy=0,dropBoost=0,lastTeleT=0;
 var styleStats={bass:0,mid:0,high:0,crest:0};
 var activeMap=null,scanBusy=false,pendingScanTrack=null;
 var pads={build:false,flash:false,drop:false,buildAmt:0,flashAmt:0};
+var VIRTUOSO_PALETTES=[[352,188],[256,38],[148,318],[215,16]];
 
-var VIRTUOSO_PALETTES=[
-  [352,188],
-  [256,38],
-  [148,318],
-  [215,16]
-];
+function getActiveGenreKey(){return (trackGenre!=='auto')?trackGenre:detectedGenre;}
+function getActiveGenre(){return BRAIN.getGenre(getActiveGenreKey());}
 
-function detectFileHint(name){
-  var low=(name||'').toLowerCase();
-  for(var i=0;i<GENRE_KEYS.length;i++){
-    var gk=GENRE_KEYS[i],kws=GENRE_DB[gk].kw;
-    for(var j=0;j<kws.length;j++){
-      if(low.indexOf(kws[j])!==-1)return gk;
+function detectKeyFromChroma(chArr){
+  var sum=0,i,r;
+  for(i=0;i<12;i++)sum+=chArr[i];
+  if(sum<=0.0001)return {root:-1,minor:false,name:'--'};
+  var bestCorr=-999,bestRoot=0,bestMin=false;
+  for(r=0;r<12;r++){
+    var cMaj=0,cMin=0;
+    for(i=0;i<12;i++){
+      var v=chArr[(r+i)%12]/sum;
+      cMaj+=v*MAJ_PROF[i];
+      cMin+=v*MIN_PROF[i];
     }
+    if(cMaj>bestCorr){bestCorr=cMaj;bestRoot=r;bestMin=false;}
+    if(cMin>bestCorr){bestCorr=cMin;bestRoot=r;bestMin=true;}
   }
-  return '';
+  return {root:bestRoot,minor:bestMin,name:NOTE_NAMES[bestRoot]+(bestMin?'m':'')};
 }
 
-function classifyGenreByFeatures(bRatio,mRatio,hRatio,crest,bpmVal,hintKey){
-  var bestKey='pop',bestScore=999;
-  for(var i=0;i<GENRE_KEYS.length;i++){
-    var k=GENRE_KEYS[i],g=GENRE_DB[k];
-    var dB=(bRatio-g.bass)*2.4;
-    var dM=(mRatio-g.mid)*2.1;
-    var dH=(hRatio-g.high)*2.0;
-    var dC=(crest-g.crest)*0.32;
-    var dT=bpmVal>40?((bpmVal-g.bpm)/55):0;
-    var dist=dB*dB+dM*dM+dH*dH+dC*dC+dT*dT;
-    if(hintKey===k)dist*=0.45;
-    if(dist<bestScore){bestScore=dist;bestKey=k;}
-  }
-  return bestKey;
-}
-
-function getActiveGenre(){
-  var key=(trackGenre!=='auto')?trackGenre:detectedGenre;
-  return GENRE_DB[key]||GENRE_DB.pop;
+function updateAiStatUI(noteStr){
+  var el=$('aiStat');if(!el)return;
+  var nTxt=noteStr||(curNoteIdx>=0?NOTE_NAMES[curNoteIdx]:'--');
+  var kTxt=(songKey&&songKey.name)?songKey.name:'--';
+  var xp=BRAIN.mem?BRAIN.mem.xp:0;
+  var gen=BRAIN.mem?(BRAIN.mem.gen||1):1;
+  el.textContent='Поколение '+gen+' · Опыт: '+xp+' · Нота: '+nTxt+' · Тон: '+kTxt;
 }
 
 function clearMeterUI(){
-  for(var i=1;i<=3;i++){
-    $('b'+i).style.height='2px';
-    $('db'+i).textContent='-- дБ · 0%';
-  }
+  for(var i=1;i<=3;i++){$('b'+i).style.height='2px';$('db'+i).textContent='-- дБ · 0%';}
 }
 
 function resetAudioStats(){
-  envPeak=[0.14,0.11,0.09,0.14];
-  sm=[0,0,0,0];prevLin=[0,0,0,0];fluxAvg=[0.02,0.02,0.02,0.02];
+  envPeak=[0.075,0.08,0.032,0.085];
+  sm=[0,0,0,0];prevLin=[0,0,0,0];fluxAvg=[0.015,0.015,0.015,0.015];
   mudFloor=[0,0,0];mudCut=0;lastMudHit=0;
   bandFlash=[0,0,0];flash=0;lastT=0;
-  vocalEnv=0;snareFlash=0;lastSnare=0;vSpark=0;
+  vocalEnv=0;vocalConf=0;snareFlash=0;lastSnare=0;snareHistory=[];fillIntensity=0;vSpark=0;
   aiSpark=0;aiVal=0;aiKickEnv=0;aiVocalHold=0;phraseEnergy=0;buildProg=0;
-  rawBeats=[];beatIntervals=[];estBpm=0;beatPeriod=500;beatPhase=0;barBeat=0;lastRawBeat=0;
+  lastNetX=null;lastNetY=null;
+  rawBeats=[];beatIntervals=[];estBpm=0;beatPeriod=500;pllPhase=0;pllPeriod=500;pllLock=0;barBeat=0;lastRawBeat=0;
   shortEnergy=0;longEnergy=0;dropBoost=0;
   styleStats={bass:0,mid:0,high:0,crest:0};
+  trackChroma=[0,0,0,0,0,0,0,0,0,0,0,0];
+  curNoteIdx=-1;curNoteConf=0;
+  songKey=(activeMap&&activeMap.key)?activeMap.key:{root:-1,minor:false,name:'--'};
   lastGenreEval=0;
   if(activeMap&&activeMap.genre)detectedGenre=activeMap.genre;
   else if(fileHintGenre)detectedGenre=fileHintGenre;
+  if(activeMap&&activeMap.bpm){estBpm=activeMap.bpm;beatPeriod=Math.round(60000/estBpm);pllPeriod=beatPeriod;}
   var initG=getActiveGenre();
   aiHue=initG.hues[0];aiTargetHue=initG.hues[0];
   clearMeterUI();
+  updateAiStatUI('--');
 }
 
 function initAudio(){
-  if(!actx){
-    var AC=window.AudioContext||window.webkitAudioContext;
-    actx=new AC();
-  }
+  if(!actx){var AC=window.AudioContext||window.webkitAudioContext;actx=new AC();}
   if(actx.state==='suspended')actx.resume();
   if(anFile)return;
   var src=actx.createMediaElementSource(audio);
@@ -908,314 +821,316 @@ function analyzeBand(a,b,topCount,peakWeight,subBoost){
   var sumSq=0,count=b-a,top=[],i,j,db,v,e,w,maxDb=-100;
   var midBin=a+Math.floor(count*0.45);
   for(i=a;i<b;i++){
-    db=freqFloat[i];
-    if(db>maxDb)maxDb=db;
-    v=dbToLin(db);
-    if(subBoost&&i<=midBin)v*=subBoost;
-    e=v*v;
-    sumSq+=e;
+    db=freqFloat[i];if(db>maxDb)maxDb=db;
+    v=dbToLin(db);if(subBoost&&i<=midBin)v*=subBoost;
+    e=v*v;sumSq+=e;
     if(topCount>0){
       if(top.length<topCount){top.push(e);top.sort(function(x,y){return x-y;});}
-      else if(e>top[0]){
-        top[0]=e;
-        for(j=0;j<top.length-1&&top[j]>top[j+1];j++){w=top[j];top[j]=top[j+1];top[j+1]=w;}
-      }
+      else if(e>top[0]){top[0]=e;for(j=0;j<top.length-1&&top[j]>top[j+1];j++){w=top[j];top[j]=top[j+1];top[j+1]=w;}}
     }
   }
-  var rms=Math.sqrt(sumSq/count);
-  var topAvg=rms;
-  if(top.length){
-    var ts=0;
-    for(i=0;i<top.length;i++)ts+=top[i];
-    topAvg=Math.sqrt(ts/top.length);
-  }
+  var rms=Math.sqrt(sumSq/count),topAvg=rms;
+  if(top.length){var ts=0;for(i=0;i<top.length;i++)ts+=top[i];topAvg=Math.sqrt(ts/top.length);}
   return {v:rms*(1-peakWeight)+topAvg*peakWeight,db:maxDb};
 }
 
-function detectPitchHue(binHz){
-  var bStart=Math.max(2,Math.round(140/binHz));
-  var bEnd=Math.min(freqFloat.length,Math.round(1450/binHz));
-  var chroma=[0,0,0,0,0,0,0,0,0,0,0,0];
-  var total=0,i,lin,e,midi,note;
+function analyzeVocalHarmonicity(a,b){
+  if(b<=a+2)return 0.5;
+  if(b>freqFloat.length)b=freqFloat.length;
+  var sumE=0,sumLog=0,maxE=0,count=b-a,i,lin,e;
+  for(i=a;i<b;i++){
+    lin=dbToLin(freqFloat[i]);e=lin*lin+1e-12;sumE+=e;sumLog+=Math.log(e);if(e>maxE)maxE=e;
+  }
+  var arith=sumE/count;if(arith<1e-7)return 0;
+  var flatness=Math.min(1,Math.exp(sumLog/count)/arith);
+  var tonality=Math.max(0,Math.min(1,(0.56-flatness)/0.44));
+  var formantPeak=Math.min(1,(maxE/arith)/16);
+  return Math.max(0,Math.min(1,tonality*0.66+formantPeak*0.34));
+}
+
+function analyzeHarmony(binHz,dt){
+  var bStart=Math.max(2,Math.round(110/binHz));
+  var bEnd=Math.min(freqFloat.length,Math.round(1760/binHz));
+  var frameChr=[0,0,0,0,0,0,0,0,0,0,0,0],total=0,i,lin,e,midi,note;
   for(i=bStart;i<bEnd;i++){
-    lin=dbToLin(freqFloat[i]);
-    if(lin<0.012)continue;
-    e=lin*lin;
-    midi=69+12*(Math.log((i*binHz)/440)/0.69314718056);
-    note=((Math.round(midi)%12)+12)%12;
-    chroma[note]+=e;
-    total+=e;
+    lin=dbToLin(freqFloat[i]);if(lin<0.011)continue;
+    e=lin*lin;midi=69+12*(Math.log((i*binHz)/440)/0.69314718056);
+    note=((Math.round(midi)%12)+12)%12;frameChr[note]+=e;total+=e;
   }
-  if(total<0.0003)return -1;
-  var vx=0,vy=0,ang;
+  if(total<0.00025){curNoteConf*=Math.exp(-dt/260);return -1;}
+  var bestN=0,bestV=-1,cDecay=Math.exp(-dt/9000);
   for(i=0;i<12;i++){
-    ang=((i*7)%12)*(Math.PI/6);
-    vx+=Math.cos(ang)*chroma[i];
-    vy+=Math.sin(ang)*chroma[i];
+    var norm=frameChr[i]/total;
+    trackChroma[i]=trackChroma[i]*cDecay+norm*(1-cDecay);
+    if(norm>bestV){bestV=norm;bestN=i;}
   }
+  if(bestV>0.14){curNoteIdx=bestN;curNoteConf=Math.min(1,bestV*2.4);}
+  var vx=0,vy=0,ang;
+  for(i=0;i<12;i++){ang=((i*7)%12)*(Math.PI/6);vx+=Math.cos(ang)*frameChr[i];vy+=Math.sin(ang)*frameChr[i];}
   return (Math.atan2(vy,vx)*57.2957795+360)%360;
 }
 
 function sceneLabel(st){return st===3?'Дроп':(st===2?'Разгон':(st===0?'Яма':'Куплет'));}
 
-function getMapState(){
-  if(!activeMap||!activeMap.states||!activeMap.dur||!audio.duration)return -1;
-  var pos=Math.min(0.999,Math.max(0,(audio.currentTime+0.25)/activeMap.dur));
-  var idx=Math.floor(pos*activeMap.states.length);
-  return activeMap.states[idx];
+function getMapLookahead(msAhead){
+  if(!activeMap||!activeMap.states||!activeMap.dur||!audio.duration)return {state:-1,secsToDrop:-1};
+  var curT=audio.currentTime+(msAhead||0)/1000;
+  var pos=Math.min(0.999,Math.max(0,curT/activeMap.dur));
+  var n=activeMap.states.length;
+  var idx=Math.floor(pos*n);
+  var stNow=activeMap.states[idx];
+  var secsToDrop=-1;
+  if(stNow!==3){
+    var segDur=activeMap.dur/n;
+    for(var k=1;k<=8&&idx+k<n;k++){
+      if(activeMap.states[idx+k]===3){secsToDrop=k*segDur;break;}
+    }
+  }
+  return {state:stNow,secsToDrop:secsToDrop};
 }
 
-/* --- СЛОЙ 1: АНАЛИЗАТОР И КЛАССИФИКАТОР ЖАНРОВ --- */
+/* --- СЛОЙ 1: АНАЛИЗАТОР СПЕКТРА, ВОКАЛА, НОТ, СБИВОК И LOOKAHEAD --- */
 function runAnalyzer(t,dt){
   if(!anFile||!freqFloat||!timeFloat)return null;
   anFile.getFloatFrequencyData(freqFloat);
   anFile.getFloatTimeDomainData(timeFloat);
 
-  var wSum=0,wPeak=0,wi,ws;
-  var wStart=Math.max(0,timeFloat.length-1024);
-  for(wi=wStart;wi<timeFloat.length;wi++){
-    ws=Math.abs(timeFloat[wi]);
-    wSum+=ws*ws;
-    if(ws>wPeak)wPeak=ws;
-  }
-  var wRms=Math.sqrt(wSum/(timeFloat.length-wStart));
-  var crest=wPeak/Math.max(0.008,wRms);
+  var wSum=0,wPeak=0,wi,ws,wStart=Math.max(0,timeFloat.length-1024);
+  for(wi=wStart;wi<timeFloat.length;wi++){ws=Math.abs(timeFloat[wi]);wSum+=ws*ws;if(ws>wPeak)wPeak=ws;}
+  var crest=wPeak/Math.max(0.008,Math.sqrt(wSum/(timeFloat.length-wStart)));
   var transientKick=Math.max(0,Math.min(1,(crest-2.05)*0.45))*Math.min(1,wPeak*2.8);
 
-  var sr=(actx&&actx.sampleRate)?actx.sampleRate:48000;
-  var binHz=sr/anFile.fftSize;
+  var sr=(actx&&actx.sampleRate)?actx.sampleRate:48000,binHz=sr/anFile.fftSize;
+  var b0=Math.max(1,Math.round(30/binHz)),bSub=Math.max(b0+1,Math.round(78/binHz)),b1=Math.max(bSub+1,Math.round(145/binHz));
+  var m0=Math.max(b1+2,Math.round(260/binHz)),m1=Math.max(m0+4,Math.round(2400/binHz));
+  var s0=Math.max(m0+2,Math.round(1800/binHz)),s1=Math.min(freqFloat.length,Math.max(s0+4,Math.round(4500/binHz)));
+  var h0=Math.max(m1+3,Math.round(3500/binHz)),h1=Math.min(freqFloat.length,Math.max(h0+4,Math.round(14000/binHz)));
 
-  var b0=Math.max(1,Math.round(32/binHz));
-  var bSub=Math.max(b0+1,Math.round(76/binHz));
-  var b1=Math.max(bSub+1,Math.round(115/binHz));
-  var m0=Math.max(b1+3,Math.round(250/binHz));
-  var m1=Math.max(m0+4,Math.round(2200/binHz));
-  var s0=Math.max(m0+2,Math.round(1800/binHz));
-  var s1=Math.min(freqFloat.length,Math.max(s0+4,Math.round(4500/binHz)));
-  var h0=Math.max(m1+4,Math.round(4000/binHz));
-  var h1=Math.min(freqFloat.length,Math.max(h0+4,Math.round(13500/binHz)));
-
-  var subBass=analyzeBand(b0,bSub,1,0.50,1.35).v;
-  var bRes=analyzeBand(b0,b1,2,0.52,1.25);
-  var mRes=analyzeBand(m0,m1,6,0.78,1.15);
+  var subBass=analyzeBand(b0,bSub,1,0.55,1.35).v;
+  var bRes=analyzeBand(b0,b1,2,0.58,1.25);
+  var mRes=analyzeBand(m0,m1,6,0.75,1.10);
   var snRes=analyzeBand(s0,s1,4,0.75,1.0);
-  var hRes=analyzeBand(h0,h1,6,0.70,1.0);
+  var hRes=analyzeBand(h0,h1,6,0.76,1.0);
 
-  var rawBass=bRes.v+transientKick*0.04;
-  var rawMid=mRes.v*2.30;
-  var rawHigh=hRes.v*3.35;
+  vocalConf+=(analyzeVocalHarmonicity(m0,m1)-vocalConf)*(1-Math.exp(-dt/95));
+  var noteHue=analyzeHarmony(binHz,dt);
 
-  if(rawMid>0.03&&subBass<rawMid*0.18&&transientKick<0.15)rawBass*=0.26;
+  var rawBass=bRes.v*1.18+transientKick*0.045;
+  var rawMid=mRes.v*1.75;
+  var rawHigh=hRes.v*7.20;
+  if(mRes.v>0.025&&subBass<mRes.v*0.12&&transientKick<0.12)rawBass*=0.55;
 
-  var rawAll=Math.max(rawBass,rawMid,rawHigh);
-  var raw=[rawBass,rawMid,rawHigh,rawAll];
+  var raw=[rawBass,rawMid,rawHigh,Math.max(rawBass,rawMid,rawHigh)];
   var dbs=[bRes.db,mRes.db,hRes.db];
 
   var stAlpha=1-Math.exp(-dt/2000);
   styleStats.bass=styleStats.bass*(1-stAlpha)+bRes.v*stAlpha;
   styleStats.mid=styleStats.mid*(1-stAlpha)+(mRes.v*1.55)*stAlpha;
-  styleStats.high=styleStats.high*(1-stAlpha)+(hRes.v*2.15)*stAlpha;
+  styleStats.high=styleStats.high*(1-stAlpha)+(hRes.v*3.20)*stAlpha;
   styleStats.crest=styleStats.crest*(1-stAlpha)+crest*stAlpha;
 
-  if(trackGenre==='auto'&&t-lastGenreEval>1500){
+  if(t-lastGenreEval>1600){
     lastGenreEval=t;
-    var sumSpec=styleStats.bass+styleStats.mid+styleStats.high;
-    if(sumSpec>0.03){
-      var bR=styleStats.bass/sumSpec;
-      var mR=styleStats.mid/sumSpec;
-      var hR=styleStats.high/sumSpec;
-      detectedGenre=classifyGenreByFeatures(bR,mR,hR,styleStats.crest,estBpm,fileHintGenre);
+    if(trackGenre==='auto'){
+      var sumSpec=styleStats.bass+styleStats.mid+styleStats.high;
+      if(sumSpec>0.02){
+        detectedGenre=BRAIN.classify(styleStats.bass/sumSpec,styleStats.mid/sumSpec,styleStats.high/sumSpec,styleStats.crest,estBpm,fileHintGenre);
+      }
     }
+    var liveKey=detectKeyFromChroma(trackChroma);
+    if(liveKey.root>=0)songKey=liveKey;
   }
 
-  var genreObj=getActiveGenre();
-  var profMul=genreObj.mul;
-  var relTimes=genreObj.rel;
-
+  var genreObj=getActiveGenre(),profMul=genreObj.mul,relTimes=genreObj.rel;
   var gain=($('sens').value/100);
   var lvl=[],led=[],flux=[],i;
-  var minPeaks=[0.11,0.09,0.075,0.11];
-  var gates=[0.008,0.007,0.006,0.008];
-  var peakDecay=Math.exp(-dt/3400);
-  var flAlpha=1-Math.exp(-dt/190);
+  var minPeaks=[0.055,0.065,0.028,0.065],gates=[0.004,0.004,0.0018,0.004];
+  var peakDecay=Math.exp(-dt/2600),flAlpha=1-Math.exp(-dt/190);
 
   for(i=0;i<4;i++){
     envPeak[i]=Math.max(raw[i],envPeak[i]*peakDecay,minPeaks[i]);
-    var clean=Math.max(0,raw[i]-gates[i]);
-    var span=Math.max(0.04,envPeak[i]-gates[i]);
+    var clean=Math.max(0,raw[i]-gates[i]),span=Math.max(0.022,envPeak[i]-gates[i]);
     lvl[i]=Math.max(0,Math.min(1,(clean/span)*gain*profMul[i]));
-
-    var att=1-Math.exp(-dt/9);
-    var rel=1-Math.exp(-dt/relTimes[i]);
-    sm[i]+=(lvl[i]-sm[i])*(lvl[i]>sm[i]?att:rel);
-
+    sm[i]+=(lvl[i]-sm[i])*(lvl[i]>sm[i]?(1-Math.exp(-dt/9)):(1-Math.exp(-dt/relTimes[i])));
     var cVal=Math.max(0,Math.min(1,sm[i]));
-    led[i]=cVal<0.02?0:Math.pow(cVal,1.32);
-
-    var dLin=Math.max(0,raw[i]-prevLin[i])/span;
-    prevLin[i]=raw[i];
+    led[i]=cVal<0.02?0:Math.pow(cVal,1.25);
+    var dLin=Math.max(0,raw[i]-prevLin[i])/span;prevLin[i]=raw[i];
     flux[i]=dLin*gain*profMul[i];
     fluxAvg[i]=fluxAvg[i]*(1-flAlpha)+flux[i]*flAlpha;
   }
 
-  var vAtt=1-Math.exp(-dt/72);
-  var vRel=1-Math.exp(-dt/195);
-  vocalEnv+=(led[1]-vocalEnv)*(led[1]>vocalEnv?vAtt:vRel);
+  var vTarget=led[1]*(0.48+0.68*vocalConf);
+  vocalEnv+=(vTarget-vocalEnv)*(1-Math.exp(-dt/(vTarget>vocalEnv?72:205)));
 
-  var snareFlux=(flux[1]*0.55+flux[2]*0.45+Math.min(0.25,snRes.v*gain*0.45));
+  /* Детектор снэра и барабанных сбивок (Drum Fill) */
+  var noiseBoost=1.25-0.45*vocalConf;
+  var snareFlux=(flux[1]*0.55+flux[2]*0.45+Math.min(0.25,snRes.v*gain*0.45))*noiseBoost;
   var isSnare=false;
-  if(soloMode!=='kick'&&soloMode!=='vocal'&&lvl[1]>0.18&&snareFlux>Math.max(0.068,fluxAvg[1]*1.55)&&t-lastSnare>190){
-    lastSnare=t;
-    isSnare=true;
-    snareFlash=Math.min(1,0.68+lvl[1]*0.32);
+  if(soloMode!=='kick'&&soloMode!=='vocal'&&lvl[1]>0.17&&snareFlux>Math.max(0.065,fluxAvg[1]*1.50)&&t-lastSnare>115){
+    lastSnare=t;isSnare=true;snareFlash=Math.min(1,0.68+lvl[1]*0.32);
+    snareHistory.push(t);
   }
+  while(snareHistory.length&&t-snareHistory[0]>880)snareHistory.shift();
+  var targetFill=snareHistory.length>=4?Math.min(1,(snareHistory.length-3)/4):0;
+  fillIntensity+=(targetFill-fillIntensity)*(1-Math.exp(-dt/160));
   snareFlash*=Math.exp(-dt/95);
 
   if(soloMode==='vocal'){
-    led[0]*=0.05;led[2]*=0.14;led[1]=Math.min(1,vocalEnv*1.25);
-    flux[0]*=0.1;flux[2]*=0.15;snareFlash=0;
+    led[0]*=0.05;led[2]*=0.14;led[1]=Math.min(1,vocalEnv*1.28);flux[0]*=0.1;flux[2]*=0.15;snareFlash=0;
   }else if(soloMode==='kick'){
-    led[1]*=0.04;led[2]*=0.04;led[0]=Math.min(1,led[0]*1.25+transientKick*0.25);
-    flux[1]*=0.05;flux[2]*=0.05;snareFlash=0;vocalEnv*=0.05;
+    led[1]*=0.04;led[2]*=0.04;led[0]=Math.min(1,led[0]*1.25+transientKick*0.25);flux[1]*=0.05;flux[2]*=0.05;snareFlash=0;vocalEnv*=0.05;
   }else if(soloMode==='melody'){
-    led[0]*=0.06;led[1]=Math.min(1,led[1]*1.15);led[2]=Math.min(1,led[2]*1.10);
-    flux[0]*=0.1;
+    led[0]*=0.06;led[1]=Math.min(1,led[1]*1.15);led[2]=Math.min(1,led[2]*1.10);flux[0]*=0.1;
   }
 
   if(antiMud){
-    var mAtt=1-Math.exp(-dt/550);
-    var mRel=1-Math.exp(-dt/180);
+    var mAtt=1-Math.exp(-dt/550),mRel=1-Math.exp(-dt/180);
     for(i=0;i<3;i++){
-      if(led[i]>0.58)mudFloor[i]+=(led[i]-0.58)*mAtt;
-      else mudFloor[i]*=(1-mRel);
+      if(led[i]>0.58)mudFloor[i]+=(led[i]-0.58)*mAtt;else mudFloor[i]*=(1-mRel);
       led[i]=Math.max(0,Math.min(1,(led[i]-mudFloor[i]*0.55)*(1+mudFloor[i]*0.45)));
     }
-    var hitFlux=Math.max(flux[0],flux[1]*0.9);
-    if(hitFlux>0.078&&t-lastMudHit>155){
-      lastMudHit=t;
-      mudCut=18;
-    }
+    if(Math.max(flux[0],flux[1]*0.9)>0.078&&t-lastMudHit>155){lastMudHit=t;mudCut=18;}
     if(mudCut>0)mudCut=Math.max(0,mudCut-dt);
-  }else{
-    mudCut=0;
-  }
+  }else mudCut=0;
+
+  /* Фазовый трекер темпа PLL + Lookahead упреждение задержки Bluetooth */
+  pllPhase+=dt/Math.max(260,pllPeriod);
+  if(pllPhase>=1){pllPhase-=Math.floor(pllPhase);barBeat=(barBeat+1)%8;}
 
   var beatScore=flux[0]*0.64+flux[3]*0.36+transientKick*0.24;
-  var thrAny=Math.max(0.046,fluxAvg[3]*1.36);
   var isBeat=false;
-  if(lvl[3]>0.19&&beatScore>thrAny&&t-lastRawBeat>240){
+  if(lvl[3]>0.19&&beatScore>Math.max(0.046,fluxAvg[3]*1.36)&&t-lastRawBeat>240){
     isBeat=true;
     if(lastRawBeat>0){
       var ioi=t-lastRawBeat;
       if(ioi>=260&&ioi<=1600){
-        while(ioi<365)ioi*=2;
-        while(ioi>820)ioi/=2;
-        beatIntervals.push(ioi);
-        if(beatIntervals.length>14)beatIntervals.shift();
+        while(ioi<365)ioi*=2;while(ioi>820)ioi/=2;
+        beatIntervals.push(ioi);if(beatIntervals.length>14)beatIntervals.shift();
         if(beatIntervals.length>=3){
           var sorted=beatIntervals.slice().sort(function(a,b){return a-b;});
           beatPeriod=sorted[Math.floor(sorted.length/2)];
           estBpm=Math.round(60000/beatPeriod);
+          pllPeriod+=(beatPeriod-pllPeriod)*0.35;
         }
       }
     }
-    lastRawBeat=t;
-    barBeat=(barBeat+1)%8;
-    rawBeats.push(t);
-    if(rawBeats.length>24)rawBeats.shift();
-  }
+    var phErr=(pllPhase>0.5)?(pllPhase-1):pllPhase;
+    pllPhase=(pllPhase-phErr*0.38+1)%1;
+    pllLock=Math.min(1,pllLock+0.20);
+    lastRawBeat=t;rawBeats.push(t);if(rawBeats.length>24)rawBeats.shift();
+  }else pllLock*=Math.exp(-dt/4500);
 
-  beatPhase=lastRawBeat>0?Math.min(1.25,(t-lastRawBeat)/Math.max(300,beatPeriod)):0;
-  var groovePulse=Math.exp(-beatPhase*3.1);
+  var dlyMs=+$('dly').value||0;
+  var lookMs=Math.min(260,dlyMs*0.75);
+  var futurePhase=(pllPhase+lookMs/Math.max(260,pllPeriod))%1;
+  var preBeatBoost=(pllLock>0.42&&futurePhase<0.14&&led[0]>0.18)?(1-futurePhase/0.14)*0.35:0;
+  var groovePulse=Math.max(Math.exp(-pllPhase*3.1)*(0.55+0.45*pllLock),preBeatBoost);
 
   var curE=Math.max(led[0],led[1],led[2]*0.9);
   shortEnergy+=(curE-shortEnergy)*(1-Math.exp(-dt/250));
   longEnergy+=(curE-longEnergy)*(1-Math.exp(-dt/4600));
-  var mapSt=getMapState();
+  var lookInfo=getMapLookahead(dlyMs);
+  var mapSt=lookInfo.state;
   if((shortEnergy>longEnergy*1.35&&shortEnergy>0.46)||mapSt===3){
     dropBoost=Math.min(0.32,Math.max(dropBoost,(shortEnergy-longEnergy)*0.60,mapSt===3?0.22:0));
-  }else{
-    dropBoost*=Math.exp(-dt/680);
-  }
+  }else dropBoost*=Math.exp(-dt/680);
 
   return {
     lvl:lvl,led:led,flux:flux,dbs:dbs,transient:transientKick,
-    vocalEnv:vocalEnv,snareFlash:snareFlash,isSnare:isSnare,
-    groovePulse:groovePulse,beatPhase:beatPhase,barBeat:barBeat,
-    binHz:binHz,curE:curE,isBeat:isBeat,mapState:mapSt,genre:genreObj
+    vocalEnv:vocalEnv,vocalConf:vocalConf,snareFlash:snareFlash,isSnare:isSnare,
+    fillIntensity:fillIntensity,preBeatBoost:preBeatBoost,
+    groovePulse:groovePulse,pllPhase:pllPhase,barBeat:barBeat,
+    noteHue:noteHue,noteIdx:curNoteIdx,keyMinor:songKey.minor,
+    curE:curE,isBeat:isBeat,mapState:mapSt,secsToDrop:lookInfo.secsToDrop,
+    genre:genreObj,genreKey:getActiveGenreKey()
   };
 }
 
-/* --- СЛОЙ 2: ИИ-РЕЖИССЁР И УНИКАЛЬНАЯ ФИЗИКА 7 РЕЖИМОВ --- */
+/* --- СЛОЙ 2: НЕЙРО-ИИ (MLP 16->20->6 + ГАРМОНИЧЕСКИЙ ДИРИЖЁР) --- */
 function shortHueLerp(a,b,t){
   var d=((b-a+540)%360)-180;
   return (a+d*t+360)%360;
 }
 
 function updateVirtuosoPalette(sig,t,dt){
-  var pair=VIRTUOSO_PALETTES[0];
   if(vPalMode!=='auto'){
-    pair=VIRTUOSO_PALETTES[+vPalMode]||VIRTUOSO_PALETTES[0];
-    vTargetBase=pair[0];
-    vTargetVocal=pair[1];
+    var pair=VIRTUOSO_PALETTES[+vPalMode]||VIRTUOSO_PALETTES[0];
+    vTargetBase=pair[0];vTargetVocal=pair[1];
   }else{
-    vTargetBase=sig.genre.hues[0];
-    vTargetVocal=sig.genre.hues[1];
-    if(t-lastPalShift>3600){
-      var noteHue=detectPitchHue(sig.binHz);
-      if(noteHue>=0){
-        lastPalShift=t;
-        var shift=((noteHue-180)/180)*18;
-        vTargetVocal=(sig.genre.hues[1]+shift+360)%360;
-      }
+    vTargetBase=sig.genre.hues[0];vTargetVocal=sig.genre.hues[1];
+    if(t-lastPalShift>2800&&sig.noteHue>=0){
+      lastPalShift=t;
+      vTargetVocal=(sig.genre.hues[1]+((sig.noteHue-180)/180)*24+360)%360;
     }
   }
-  var bDiff=((vTargetBase-vBaseHue+540)%360)-180;
-  var vDiff=((vTargetVocal-vVocalHue+540)%360)-180;
-  var glide=1-Math.exp(-dt/380);
-  vBaseHue=(vBaseHue+bDiff*glide+360)%360;
-  vVocalHue=(vVocalHue+vDiff*glide+360)%360;
+  var glide=1-Math.exp(-dt/360);
+  vBaseHue=(vBaseHue+(((vTargetBase-vBaseHue+540)%360)-180)*glide+360)%360;
+  vVocalHue=(vVocalHue+(((vTargetVocal-vVocalHue+540)%360)-180)*glide+360)%360;
+}
+
+function buildNetInputs(sig){
+  var noteNorm=(sig.noteHue>=0)?(sig.noteHue/360):0.5;
+  return [
+    sig.led[0],sig.led[1],sig.led[2],sig.transient,
+    sig.vocalConf,sig.vocalEnv,sig.snareFlash,sig.groovePulse,
+    Math.sin(sig.pllPhase*6.2831853)*0.5+0.5,sig.barBeat/7,noteNorm,sig.keyMinor?1:0,
+    Math.min(1,phraseEnergy),Math.min(1,dropBoost*3),buildProg,sig.fillIntensity
+  ];
 }
 
 function runAiDirector(sig,t,dt){
-  var g=sig.genre,led=sig.led,lvl=sig.lvl,flux=sig.flux;
-  var ms=sig.mapState;
+  var g=sig.genre,led=sig.led,lvl=sig.lvl,flux=sig.flux,ms=sig.mapState;
+  var gMem=(BRAIN.mem&&BRAIN.mem.genres&&BRAIN.mem.genres[sig.genreKey])||{punch:0,hueShift:0,likes:0};
 
   phraseEnergy+=(sig.curE-phraseEnergy)*(1-Math.exp(-dt/1400));
-
   var isBreak=(ms===0||phraseEnergy<0.13);
   var isDrop=!isBreak&&(ms===3||(dropBoost>0.11&&phraseEnergy>0.42));
-  var isBuild=!isBreak&&!isDrop&&(ms===2);
+  var isBuild=!isBreak&&!isDrop&&(ms===2||sig.fillIntensity>0.45);
 
-  if(sig.isBeat){
-    aiKickEnv=Math.min(1,0.58+led[0]*0.42+sig.transient*0.24);
+  if(isBuild)buildProg=Math.min(1,buildProg+dt/3400);
+  else buildProg*=Math.exp(-dt/450);
+
+  /* Прямой проход 3-слойной нейросети */
+  var x=buildNetInputs(sig);
+  var y=BRAIN.forward(x);
+  lastNetX=x;lastNetY=y;
+
+  var effPunch=Math.max(0.65,Math.min(1.65,g.punch*(0.72+y[3]*0.62)+(gMem.punch||0)));
+  if(sig.isBeat||sig.preBeatBoost>0.22){
+    aiKickEnv=Math.max(aiKickEnv,Math.min(1,0.56+led[0]*0.44+sig.transient*0.24+sig.preBeatBoost*0.3));
   }else{
     aiKickEnv*=Math.exp(-dt/Math.max(85,g.rel[0]));
   }
 
-  var vHoldRate=sig.vocalEnv>aiVocalHold?140:340;
-  aiVocalHold+=(sig.vocalEnv-aiVocalHold)*(1-Math.exp(-dt/vHoldRate));
+  aiVocalHold+=(sig.vocalEnv-aiVocalHold)*(1-Math.exp(-dt/(sig.vocalEnv>aiVocalHold?130:320)));
 
-  var baseH=g.hues[0],vocH=g.hues[1],accH=g.hues[2];
-  var vocalActive=(soloMode==='vocal'||soloMode==='melody')||(soloMode!=='kick'&&aiVocalHold>0.23&&aiVocalHold>led[0]*0.86);
+  var noteOffset=(sig.noteHue>=0)?(((sig.noteHue-180)/180)*16):0;
+  var learnedShift=gMem.hueShift||0;
+  var baseH=(g.hues[0]+learnedShift+360)%360;
+  var vocH=(g.hues[1]+noteOffset+learnedShift+360)%360;
+  var accH=(g.hues[2]+noteOffset*0.5+learnedShift+360)%360;
+
+  var neuralHue=shortHueLerp(baseH,vocH,y[0]);
+  neuralHue=shortHueLerp(neuralHue,accH,y[1]*0.65);
+
+  var vocalActive=(soloMode==='vocal'||soloMode==='melody')||(soloMode!=='kick'&&aiVocalHold>0.21&&aiVocalHold>led[0]*0.82);
 
   if(isBreak){
-    buildProg=0;
     var wave=(Math.sin(t*0.0016)+1)/2;
     aiTargetHue=shortHueLerp(vocH,accH,wave);
+    eyeMood='idle';
   }else if(isBuild){
-    buildProg=Math.min(1,buildProg+dt/3800);
-    aiTargetHue=shortHueLerp(vocH,accH,buildProg);
+    aiTargetHue=shortHueLerp(neuralHue,accH,buildProg);
+    eyeMood='build';
   }else if(isDrop){
-    buildProg=0;
-    if(vocalActive&&sig.barBeat%4>=2)aiTargetHue=vocH;
-    else aiTargetHue=(Math.floor(sig.barBeat/2)%2===0)?baseH:accH;
+    aiTargetHue=(vocalActive&&sig.barBeat%4>=2)?vocH:neuralHue;
+    eyeMood='drop';
   }else{
-    buildProg=0;
-    aiTargetHue=vocalActive?vocH:baseH;
+    aiTargetHue=vocalActive?shortHueLerp(vocH,neuralHue,0.35):shortHueLerp(baseH,neuralHue,0.45);
+    eyeMood=vocalActive?'vocal':'idle';
   }
 
-  var glideMs=isBreak?650:(isDrop?85:g.glide);
+  var glideMs=isBreak?650:(isDrop?80:g.glide);
   aiHue=shortHueLerp(aiHue,aiTargetHue,1-Math.exp(-dt/glideMs));
 
   var targetVal=0;
@@ -1223,30 +1138,29 @@ function runAiDirector(sig,t,dt){
     targetVal=0.14+0.36*Math.max(aiVocalHold,phraseEnergy);
   }else if(isBuild){
     var rampFloor=0.18+0.54*buildProg;
-    var rampHit=Math.max(aiKickEnv,sig.groovePulse*(0.45+0.55*buildProg));
+    var rampHit=Math.max(aiKickEnv,sig.groovePulse*(0.45+0.55*buildProg),sig.fillIntensity*0.8);
     targetVal=Math.min(1,rampFloor+(1-rampFloor)*rampHit);
   }else if(isDrop){
-    var dropHit=Math.max(aiKickEnv*g.punch,aiVocalHold*0.72);
+    var dropHit=Math.max(aiKickEnv*effPunch,aiVocalHold*0.72,y[2]*0.45);
     targetVal=Math.min(1,0.05+0.95*dropHit);
   }else{
-    var verseDrive=vocalActive?Math.max(aiVocalHold*0.92,aiKickEnv*0.82):Math.max(aiKickEnv*g.punch,led[2]*0.32);
+    var verseDrive=vocalActive?Math.max(aiVocalHold*0.92,aiKickEnv*0.82):Math.max(aiKickEnv*effPunch,y[2]*0.42);
     targetVal=Math.min(1,0.05+0.95*verseDrive);
   }
 
   if(mudCut>0&&!isBreak)targetVal*=0.32;
-  var vRate=targetVal>aiVal?12:Math.max(85,g.rel[3]);
-  aiVal+=(targetVal-aiVal)*(1-Math.exp(-dt/vRate));
+  aiVal+=(targetVal-aiVal)*(1-Math.exp(-dt/(targetVal>aiVal?12:Math.max(85,g.rel[3]))));
 
-  var outRgb=hsv(aiHue,isBreak?0.86:1.0,Math.min(1,aiVal));
+  var outSat=isBreak?0.84:(sig.keyMinor?0.97:0.89);
+  var outRgb=hsv(aiHue,outSat,Math.min(1,aiVal));
 
   if(sig.snareFlash>0.16&&soloMode!=='kick'&&!isBreak){
     var snCol=hsv(accH,0.82,1);
-    var snMix=sig.snareFlash*(isDrop?0.68:0.48);
-    outRgb=mixRgb(outRgb,snCol,snMix);
+    outRgb=mixRgb(outRgb,snCol,Math.min(0.85,sig.snareFlash*(isDrop?0.72:0.50)*(0.6+y[4]*0.7)));
   }
 
   if(flux[2]>0.068&&lvl[2]>0.26&&phraseEnergy>0.32){
-    aiSpark=Math.min(1,aiSpark+flux[2]*(isDrop?1.35:0.85));
+    aiSpark=Math.min(1,aiSpark+flux[2]*(isDrop?1.35:0.85)*(0.5+y[5]*0.9));
   }
   aiSpark*=Math.exp(-dt/68);
   if(aiSpark>0.10){
@@ -1254,33 +1168,29 @@ function runAiDirector(sig,t,dt){
     outRgb=[Math.min(255,outRgb[0]+sp*0.85),Math.min(255,outRgb[1]+sp*0.92),Math.min(255,outRgb[2]+sp)];
   }
 
-  return {rgb:outRgb,prio:sig.isBeat||sig.isSnare,allowAmb:true};
+  eyeScale=Math.max(aiKickEnv,sig.snareFlash*0.7);
+  return {rgb:outRgb,prio:sig.isBeat||sig.isSnare||sig.preBeatBoost>0.25,allowAmb:true,scene:isBreak?'Яма':(isBuild?'Разгон':(isDrop?'Дроп':'Куплет')),vocalActive:vocalActive};
 }
 
 function runDirector(sig,t,dt){
   var led=sig.led,lvl=sig.lvl,flux=sig.flux;
   var s=(soloMode==='kick')?0:(soloMode==='vocal'||soloMode==='melody'?1:srcBand);
 
-  if(pads.drop)return {rgb:[0,0,0],prio:true,allowAmb:false};
+  if(pads.drop){eyeMood='off';eyeScale=0;return {rgb:[0,0,0],prio:true,allowAmb:false,scene:'Яма (пэд)'};}
   if(pads.build){
     pads.buildAmt=Math.min(1,pads.buildAmt+dt/2200);
-    var rate=6+pads.buildAmt*16;
-    var wave=(Math.sin(t*0.00628*rate)+1)/2;
-    var bHue=(aiHue+pads.buildAmt*140)%360;
-    return {rgb:hsv(bHue,0.85,0.25+0.75*wave),prio:wave>0.85,allowAmb:false};
-  }else{
-    pads.buildAmt=0;
-  }
+    var rate=6+pads.buildAmt*16,wave=(Math.sin(t*0.00628*rate)+1)/2;
+    eyeMood='build';eyeScale=wave;
+    return {rgb:hsv((aiHue+pads.buildAmt*140)%360,0.85,0.25+0.75*wave),prio:wave>0.85,allowAmb:false,scene:'Разгон (пэд)'};
+  }else pads.buildAmt=0;
+
   if(pads.flash||pads.flashAmt>0.04){
-    if(pads.flash)pads.flashAmt=1;
-    else pads.flashAmt*=Math.exp(-dt/160);
-    var fMix=pads.flashAmt;
-    return {rgb:[255*fMix,245*fMix,255*fMix],prio:fMix>0.8,allowAmb:false};
+    if(pads.flash)pads.flashAmt=1;else pads.flashAmt*=Math.exp(-dt/160);
+    var fMix=pads.flashAmt;eyeMood='drop';eyeScale=fMix;
+    return {rgb:[255*fMix,245*fMix,255*fMix],prio:fMix>0.8,allowAmb:false,scene:'Вспышка (пэд)'};
   }
 
-  if(musicMode==='auto'){
-    return runAiDirector(sig,t,dt);
-  }
+  if(musicMode==='auto')return runAiDirector(sig,t,dt);
 
   if(musicMode==='virtuoso'){
     updateVirtuosoPalette(sig,t,dt);
@@ -1288,84 +1198,52 @@ function runDirector(sig,t,dt){
     if(dropBoost>0.08&&sig.barBeat%2===1&&sig.vocalEnv>0.12)isVocTurn=true;
     if(soloMode==='kick')isVocTurn=false;
     else if(soloMode==='vocal'||soloMode==='melody')isVocTurn=true;
-
     var activeHue=isVocTurn?vVocalHue:vBaseHue;
     var lineEnergy=isVocTurn?(sig.vocalEnv*1.05):(led[0]*(0.5+0.5*sig.groovePulse));
     var vVal=Math.min(1,0.03+lineEnergy*0.97+dropBoost*0.25);
     if(mudCut>0)vVal*=0.22;
-
     var vRgb=hsv(activeHue,1,vVal);
-    if(sig.snareFlash>0.14&&soloMode!=='kick'){
-      vRgb=mixRgb(vRgb,[255,246,230],sig.snareFlash*0.65);
-    }
+    if(sig.snareFlash>0.14&&soloMode!=='kick')vRgb=mixRgb(vRgb,[255,246,230],sig.snareFlash*0.65);
     if(flux[2]>0.068&&lvl[2]>0.25)vSpark=Math.min(1,vSpark+flux[2]*1.5);
     vSpark*=Math.exp(-dt/70);
-    if(vSpark>0.1){
-      var sp=vSpark*100;
-      vRgb=[Math.min(255,vRgb[0]+sp*0.75),Math.min(255,vRgb[1]+sp*0.88),Math.min(255,vRgb[2]+sp)];
-    }
+    if(vSpark>0.1){var sp=vSpark*100;vRgb=[Math.min(255,vRgb[0]+sp*0.75),Math.min(255,vRgb[1]+sp*0.88),Math.min(255,vRgb[2]+sp)];}
+    eyeMood=isVocTurn?'vocal':'drop';eyeScale=lineEnergy;
     return {rgb:vRgb,prio:sig.isBeat||sig.isSnare,allowAmb:true};
   }
 
   var mudScale=(mudCut>0)?0.35:1;
-
-  if(musicMode==='spec'){
-    var boost=(1+dropBoost)*mudScale;
-    return {rgb:[led[0]*255*boost,led[1]*255*boost,led[2]*255*boost],prio:sig.isBeat,allowAmb:true};
-  }
-
+  eyeMood='idle';eyeScale=led[s];
+  if(musicMode==='spec'){var boost=(1+dropBoost)*mudScale;return {rgb:[led[0]*255*boost,led[1]*255*boost,led[2]*255*boost],prio:sig.isBeat,allowAmb:true};}
   if(musicMode==='rgbbeat'){
     var bRels=[115,95,58],bGates=[0.044,0.042,0.048],anyHit=false,i;
     for(i=0;i<3;i++){
       var flVal=flux[i]+(i===0?sig.transient*0.22:0);
-      var thrI=Math.max(bGates[i],fluxAvg[i]*1.38);
-      if(lvl[i]>0.16&&flVal>thrI&&t-lastBandBeat[i]>115){
-        lastBandBeat[i]=t;
-        bandFlash[i]=Math.min(1,0.82+lvl[i]*0.28);
-        anyHit=true;
-      }
+      if(lvl[i]>0.16&&flVal>Math.max(bGates[i],fluxAvg[i]*1.38)&&t-lastBandBeat[i]>115){lastBandBeat[i]=t;bandFlash[i]=Math.min(1,0.82+lvl[i]*0.28);anyHit=true;}
       bandFlash[i]=Math.max(0,bandFlash[i]*Math.exp(-dt/bRels[i]));
     }
     return {rgb:[bandFlash[0]*255*mudScale,bandFlash[1]*255*mudScale,bandFlash[2]*255*mudScale],prio:anyHit,allowAmb:false};
   }
-
-  if(musicMode==='pulse'){
-    var kp=Math.min(1,0.04+0.96*led[s]*(1+dropBoost*0.45));
-    return {rgb:[color[0]*kp,color[1]*kp,color[2]*kp],prio:false,allowAmb:true};
-  }
-
+  if(musicMode==='pulse'){var kp=Math.min(1,0.04+0.96*led[s]*(1+dropBoost*0.45));return {rgb:[color[0]*kp,color[1]*kp,color[2]*kp],prio:false,allowAmb:true};}
   if(musicMode==='beat'){
-    var thr=Math.max(0.046,fluxAvg[s]*1.36);
-    var flB=flux[s]+(s===0||s===3?sig.transient*0.22:0);
-    var bHit=false;
-    if(lvl[s]>0.18&&flB>thr&&t-lastBeat>160){
-      lastBeat=t;bHit=true;hue=(hue+105)%360;flash=1;
-    }
+    var flB=flux[s]+(s===0||s===3?sig.transient*0.22:0),bHit=false;
+    if(lvl[s]>0.18&&flB>Math.max(0.046,fluxAvg[s]*1.36)&&t-lastBeat>160){lastBeat=t;bHit=true;hue=(hue+105)%360;flash=1;}
     flash=Math.max(0,flash*Math.exp(-dt/125));
     return {rgb:hsv(hue,1,flash*mudScale),prio:bHit,allowAmb:false};
   }
-
   hue=(hue+dt*(0.022+led[s]*0.14))%360;
-  var rVal=Math.min(1,0.28+0.72*led[s]);
-  return {rgb:hsv(hue,0.95,rVal),prio:false,allowAmb:true};
+  return {rgb:hsv(hue,0.95,Math.min(1,0.28+0.72*led[s])),prio:false,allowAmb:true};
 }
 
 /* --- СЛОЙ 3: ПАЛИТРА И ВЫВОД --- */
 function enhanceContrast(r,g,b){
-  var mx=Math.max(r,g,b);
-  if(mx<12)return [r,g,b];
+  var mx=Math.max(r,g,b);if(mx<12)return [r,g,b];
   var nr=r/mx,ng=g/mx,nb=b/mx;
-  nr=(nr<0.62)?Math.pow(nr,1.65):nr;
-  ng=(ng<0.62)?Math.pow(ng,1.65):ng;
-  nb=(nb<0.62)?Math.pow(nb,1.65):nb;
+  nr=(nr<0.62)?Math.pow(nr,1.65):nr;ng=(ng<0.62)?Math.pow(ng,1.65):ng;nb=(nb<0.62)?Math.pow(nb,1.65):nb;
   return [nr*mx,ng*mx,nb*mx];
 }
-
 function runPalette(dirOut,sig,t,dt){
   var rgb=dirOut.rgb;
-  if(musicMode==='spec'||musicMode==='rgbbeat'){
-    rgb=enhanceContrast(rgb[0],rgb[1],rgb[2]);
-  }
+  if(musicMode==='spec'||musicMode==='rgbbeat')rgb=enhanceContrast(rgb[0],rgb[1],rgb[2]);
   var targetAmb=(dirOut.allowAmb&&ambOn&&sig.curE<0.11)?Math.min(1,(0.11-sig.curE)/0.08):0;
   ambMix+=(targetAmb-ambMix)*(1-Math.exp(-dt/(targetAmb>ambMix?260:85)));
   if(dirOut.allowAmb&&ambOn&&ambMix>0.01){
@@ -1383,53 +1261,47 @@ function runMusicPipeline(t){
   var sig=runAnalyzer(t,dt);
   if(!sig)return null;
 
-  for(var i=0;i<3;i++)$('b'+(i+1)).style.height=(2+sig.led[i]*42)+'px';
+  for(var i=0;i<3;i++)$('b'+(i+1)).style.height=(2+sig.led[i]*40)+'px';
+  var dirOut=runDirector(sig,t,dt);
+  updateRobotEyes(t,eyeMood,eyeScale);
 
   if(t-lastTeleT>140){
     lastTeleT=t;
-    for(var j=0;j<3;j++){
-      $('db'+(j+1)).textContent=fmtDb(sig.dbs[j])+' · '+Math.round(sig.led[j]*100)+'%';
-    }
-    var roleTxt='Тишина';
-    if(sig.curE>=0.08){
-      if(sig.snareFlash>0.42)roleTxt='Снэр/Акцент';
-      else if(sig.vocalEnv>sig.led[0]*0.95&&sig.vocalEnv>0.22)roleTxt='Вокал ('+fmtDb(sig.dbs[1])+')';
-      else if(sig.led[0]>=sig.led[2])roleTxt='Бочка/Бас ('+fmtDb(sig.dbs[0])+')';
-      else roleTxt='Верх ('+fmtDb(sig.dbs[2])+')';
-    }
+    for(var j=0;j<3;j++)$('db'+(j+1)).textContent=fmtDb(sig.dbs[j])+' · '+Math.round(sig.led[j]*100)+'%';
+    var noteStr=sig.noteIdx>=0?NOTE_NAMES[sig.noteIdx]:'';
+    var keyStr=(songKey&&songKey.root>=0)?songKey.name:'';
+    var harmTxt=noteStr?(noteStr+(keyStr?' ('+keyStr+')':'')):keyStr;
+    var scName=dirOut.scene||(sig.mapState>=0?sceneLabel(sig.mapState):'Поток');
+    var thought=scName;
+    if(sig.fillIntensity>0.45)thought+=' · Ловлю сбивку';
+    else if(dirOut.vocalActive)thought+=' · Вижу вокал'+(harmTxt?' '+harmTxt:'');
+    else if(sig.secsToDrop>0&&sig.secsToDrop<=4.5)thought+=' · Дроп через '+sig.secsToDrop.toFixed(1)+'с';
+    else if(harmTxt)thought+=' · Тон '+harmTxt;
+    $('aiThought').textContent=thought;
+
     var bpmTxt=estBpm?(estBpm+' BPM · '):'';
-    var scTxt=(sig.mapState>=0)?(' · '+sceneLabel(sig.mapState)):'';
-    var pTxt=scanBusy?' · Анализ трека...':scTxt;
-    $('tele').textContent=bpmTxt+sig.genre.name+' · '+roleTxt+pTxt;
+    var pTxt=scanBusy?' · Скан трека...':'';
+    $('tele').textContent=bpmTxt+sig.genre.name+' · '+fmtDb(sig.dbs[0])+' / '+fmtDb(sig.dbs[1])+pTxt;
+    updateAiStatUI(noteStr||'--');
   }
 
-  var dirOut=runDirector(sig,t,dt);
   return runPalette(dirOut,sig,t,dt);
 }
 
 /* =====================================================================
-   ПРЕД-АНАЛИЗ ТРЕКА НАПЕРЁД, ОПРЕДЕЛЕНИЕ ЖАНРА И КАРТА ДРОПОВ
+   ПРЕД-АНАЛИЗ ТРЕКА НАПЕРЁД: КАРТА ДРОПОВ, BPM, ТОНАЛЬНОСТЬ И ЖАНР
    ===================================================================== */
 function readBlobBuffer(blob){
   if(blob.arrayBuffer)return blob.arrayBuffer();
   return new Response(blob).arrayBuffer();
 }
-
 function finishScan(){
   scanBusy=false;
-  if(pendingScanTrack){
-    var nxt=pendingScanTrack;
-    pendingScanTrack=null;
-    if(!nxt.map)preAnalyzeTrack(nxt);
-  }
+  if(pendingScanTrack){var nxt=pendingScanTrack;pendingScanTrack=null;if(!nxt.map)preAnalyzeTrack(nxt);}
 }
-
 function preAnalyzeTrack(trackObj,preloadedAb){
   if(!trackObj||(!trackObj.blob&&!preloadedAb))return;
-  if(scanBusy){
-    pendingScanTrack=trackObj;
-    return;
-  }
+  if(scanBusy){pendingScanTrack=trackObj;return;}
   scanBusy=true;
   var bufPromise=preloadedAb?Promise.resolve(preloadedAb):readBlobBuffer(trackObj.blob);
   bufPromise.then(function(ab){
@@ -1437,49 +1309,30 @@ function preAnalyzeTrack(trackObj,preloadedAb){
     var ctx=OAC?new OAC(1,128,44100):(actx||new (window.AudioContext||window.webkitAudioContext)());
     return ctx.decodeAudioData(ab);
   }).then(function(buf){
-    var ch0=buf.getChannelData(0);
-    var ch1=buf.numberOfChannels>1?buf.getChannelData(1):null;
-    var sr=buf.sampleRate||44100;
-    var N=120,len=ch0.length,step=Math.max(1,Math.floor(len/N));
-    var aLp=Math.min(0.35,(2*Math.PI*130)/sr);
-    var aMid=Math.min(0.65,(2*Math.PI*2200)/sr);
+    var ch0=buf.getChannelData(0),ch1=buf.numberOfChannels>1?buf.getChannelData(1):null;
+    var sr=buf.sampleRate||44100,N=120,len=ch0.length,step=Math.max(1,Math.floor(len/N));
+    var aLp=Math.min(0.35,(2*Math.PI*145)/sr),aMid=Math.min(0.65,(2*Math.PI*2400)/sr);
     var rms=[],bass=[],i,j,s,lp1=0,lp2=0,midLp=0,sumSq,bSq,mSq,hSq,peakAll=0,rmsAll=0,bAll=0,mAll=0,hAll=0,cnt;
     for(i=0;i<N;i++){
       sumSq=0;bSq=0;mSq=0;hSq=0;cnt=0;
       var end=Math.min(len,(i+1)*step);
       for(j=i*step;j<end;j+=2){
         s=ch1?(ch0[j]+ch1[j])*0.5:ch0[j];
-        var aS=Math.abs(s);
-        if(aS>peakAll)peakAll=aS;
-        lp1+=aLp*(s-lp1);
-        lp2+=aLp*(lp1-lp2);
-        midLp+=aMid*(s-midLp);
-        var mBand=midLp-lp2;
-        var hBand=s-midLp;
-        sumSq+=s*s;
-        bSq+=lp2*lp2;
-        mSq+=mBand*mBand;
-        hSq+=hBand*hBand;
-        cnt++;
+        var aS=Math.abs(s);if(aS>peakAll)peakAll=aS;
+        lp1+=aLp*(s-lp1);lp2+=aLp*(lp1-lp2);midLp+=aMid*(s-midLp);
+        var mBand=midLp-lp2,hBand=s-midLp;
+        sumSq+=s*s;bSq+=lp2*lp2;mSq+=mBand*mBand;hSq+=hBand*hBand;cnt++;
       }
-      var rSeg=Math.sqrt(sumSq/Math.max(1,cnt));
-      var bSeg=Math.sqrt(bSq/Math.max(1,cnt));
-      var mSeg=Math.sqrt(mSq/Math.max(1,cnt));
-      var hSeg=Math.sqrt(hSq/Math.max(1,cnt));
-      rms.push(rSeg);
-      bass.push(bSeg);
-      rmsAll+=rSeg;bAll+=bSeg;mAll+=mSeg;hAll+=hSeg;
+      var rSeg=Math.sqrt(sumSq/Math.max(1,cnt)),bSeg=Math.sqrt(bSq/Math.max(1,cnt));
+      var mSeg=Math.sqrt(mSq/Math.max(1,cnt)),hSeg=Math.sqrt(hSq/Math.max(1,cnt));
+      rms.push(rSeg);bass.push(bSeg);rmsAll+=rSeg;bAll+=bSeg;mAll+=mSeg;hAll+=hSeg;
     }
 
-    var envStep=Math.max(1,Math.floor(sr*0.02));
-    var maxSamples=Math.min(len,Math.floor(sr*45));
+    var envStep=Math.max(1,Math.floor(sr*0.02)),maxSamples=Math.min(len,Math.floor(sr*45));
     var envArr=[],eSum,eCnt,k,m;
     for(k=0;k<maxSamples;k+=envStep){
       eSum=0;eCnt=0;
-      for(m=k;m<Math.min(maxSamples,k+envStep);m+=2){
-        var sv=ch1?(ch0[m]+ch1[m])*0.5:ch0[m];
-        eSum+=sv*sv;eCnt++;
-      }
+      for(m=k;m<Math.min(maxSamples,k+envStep);m+=2){var sv=ch1?(ch0[m]+ch1[m])*0.5:ch0[m];eSum+=sv*sv;eCnt++;}
       envArr.push(Math.sqrt(eSum/Math.max(1,eCnt)));
     }
     var bpmEst=0,bestCorr=0;
@@ -1488,31 +1341,36 @@ function preAnalyzeTrack(trackObj,preloadedAb){
       if(lag<4||lag>=envArr.length/2)continue;
       var corr=0,nPairs=0;
       for(k=lag;k<envArr.length;k++){
-        var d1=Math.max(0,envArr[k]-envArr[k-1]);
-        var d2=Math.max(0,envArr[k-lag]-envArr[k-lag-1]);
-        corr+=d1*d2;nPairs++;
+        corr+=Math.max(0,envArr[k]-envArr[k-1])*Math.max(0,envArr[k-lag]-envArr[k-lag-1]);nPairs++;
       }
       corr/=Math.max(1,nPairs);
       if(corr>bestCorr){bestCorr=corr;bpmEst=candBpm;}
     }
 
-    var bNorm=bAll/N;
-    var mNorm=(mAll/N)*1.35;
-    var hNorm=(hAll/N)*1.95;
-    var sumSpec=Math.max(0.0001,bNorm+mNorm+hNorm);
-    var avgRms=Math.max(0.001,rmsAll/N);
-    var crestEst=Math.min(4.2,Math.max(1.6,(peakAll/avgRms)*0.62));
-    var hint=detectFileHint(trackObj.name);
-    var gKey=classifyGenreByFeatures(bNorm/sumSpec,mNorm/sumSpec,hNorm/sumSpec,crestEst,bpmEst,hint);
+    var offlineChr=[0,0,0,0,0,0,0,0,0,0,0,0],winSz=2048,frames=18;
+    for(var fIdx=0;fIdx<frames;fIdx++){
+      var startS=Math.floor(((fIdx+0.5)/frames)*Math.max(1,len-winSz));
+      for(var oct=0;oct<2;oct++){
+        for(var nIdx=0;nIdx<12;nIdx++){
+          var freq=440*Math.pow(2,((48+oct*12+nIdx)-69)/12);
+          var w=2*Math.PI*freq/sr,coeff=2*Math.cos(w),q1=0,q2=0,q0=0;
+          for(var si=0;si<winSz;si+=2){q0=coeff*q1-q2+(ch0[startS+si]||0);q2=q1;q1=q0;}
+          offlineChr[nIdx]+=Math.max(0,q1*q1+q2*q2-q1*q2*coeff);
+        }
+      }
+    }
+    var detectedKeyObj=detectKeyFromChroma(offlineChr);
 
-    var sRms=rms.slice().sort(function(a,b){return a-b;});
-    var sBass=bass.slice().sort(function(a,b){return a-b;});
-    var p95R=Math.max(0.01,sRms[Math.floor(N*0.95)]);
-    var p95B=Math.max(0.01,sBass[Math.floor(N*0.95)]);
+    var bNorm=bAll/N,mNorm=(mAll/N)*1.35,hNorm=(hAll/N)*1.95;
+    var sumSpec=Math.max(0.0001,bNorm+mNorm+hNorm);
+    var crestEst=Math.min(4.2,Math.max(1.6,(peakAll/Math.max(0.001,rmsAll/N))*0.62));
+    var gKey=BRAIN.classify(bNorm/sumSpec,mNorm/sumSpec,hNorm/sumSpec,crestEst,bpmEst,BRAIN.detectHint(trackObj.name));
+
+    var sRms=rms.slice().sort(function(a,b){return a-b;}),sBass=bass.slice().sort(function(a,b){return a-b;});
+    var p95R=Math.max(0.01,sRms[Math.floor(N*0.95)]),p95B=Math.max(0.01,sBass[Math.floor(N*0.95)]);
     var bins=[],states=[];
     for(i=0;i<N;i++){
-      var nr=Math.min(1,rms[i]/p95R);
-      var nb=Math.min(1,bass[i]/p95B);
+      var nr=Math.min(1,rms[i]/p95R),nb=Math.min(1,bass[i]/p95B);
       bins.push(Math.round(nr*100));
       var prevAvg=i>2?(rms[i-1]+rms[i-2]+rms[i-3])/(3*p95R):nr;
       if(nr<0.28)states.push(0);
@@ -1520,95 +1378,144 @@ function preAnalyzeTrack(trackObj,preloadedAb){
       else if(i>2&&nr>rms[i-1]/p95R*1.06&&nr>0.36)states.push(2);
       else states.push(1);
     }
-    var mapData={dur:buf.duration,bins:bins,states:states,genre:gKey};
+    var mapData={dur:buf.duration,bins:bins,states:states,genre:gKey,bpm:bpmEst,key:detectedKeyObj};
     trackObj.map=mapData;
     if(cur>=0&&tracks[cur]&&tracks[cur].id===trackObj.id){
       activeMap=mapData;
       if(trackGenre==='auto')detectedGenre=gKey;
-      var gObj=getActiveGenre();
-      aiHue=gObj.hues[0];aiTargetHue=gObj.hues[0];
-      drawTrackMap();
-      renderLib();
+      if(bpmEst>0){estBpm=bpmEst;beatPeriod=Math.round(60000/bpmEst);pllPeriod=beatPeriod;}
+      if(detectedKeyObj.root>=0)songKey=detectedKeyObj;
+      var gObj=getActiveGenre();aiHue=gObj.hues[0];aiTargetHue=gObj.hues[0];
+      updateAiStatUI('--');drawTrackMap();renderLib();
     }
-    saveTrackMeta(trackObj);
-    finishScan();
-  }).catch(function(){
-    finishScan();
-  });
+    saveTrackMeta(trackObj);finishScan();
+  }).catch(function(){finishScan();});
 }
 
 function drawTrackMap(){
-  var cvs=$('tmap');
-  if(!cvs)return;
-  var dpr=window.devicePixelRatio||1;
-  var w=cvs.clientWidth||400;
-  var h=36;
+  var cvs=$('tmap');if(!cvs)return;
+  var dpr=window.devicePixelRatio||1,w=cvs.clientWidth||400,h=36;
   if(cvs.width!==Math.round(w*dpr))cvs.width=Math.round(w*dpr);
   if(cvs.height!==Math.round(h*dpr))cvs.height=Math.round(h*dpr);
   var ctx=cvs.getContext('2d');
-  ctx.save();
-  ctx.scale(dpr,dpr);
-  ctx.clearRect(0,0,w,h);
-
+  ctx.save();ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
   var prog=(audio.duration&&isFinite(audio.duration))?(audio.currentTime/audio.duration):0;
   if(!activeMap||!activeMap.bins){
-    ctx.fillStyle='rgba(154,154,176,0.22)';
-    ctx.fillRect(0,h-4,w,4);
-    ctx.fillStyle='#22d3ee';
-    ctx.fillRect(0,h-4,w*prog,4);
-    ctx.restore();
-    return;
+    ctx.fillStyle='rgba(154,154,176,0.22)';ctx.fillRect(0,h-4,w,4);
+    ctx.fillStyle='#22d3ee';ctx.fillRect(0,h-4,w*prog,4);
+    ctx.restore();return;
   }
-
-  var bins=activeMap.bins,states=activeMap.states,n=bins.length;
-  var bw=w/n;
+  var bins=activeMap.bins,states=activeMap.states,n=bins.length,bw=w/n;
   for(var i=0;i<n;i++){
-    var bh=Math.max(4,(bins[i]/100)*(h-6));
-    var st=states[i];
+    var bh=Math.max(4,(bins[i]/100)*(h-6)),st=states[i];
     var col=st===3?'#ff3b6b':(st===2?'#f59e0b':(st===0?'#6b6b80':'#22d3ee'));
     ctx.globalAlpha=((i/n)<=prog)?0.95:0.35;
     ctx.fillStyle=col;
     ctx.fillRect(i*bw+0.5,h-bh-2,Math.max(1,bw-1),bh);
   }
-  ctx.globalAlpha=1;
-  ctx.fillStyle='#ffffff';
+  ctx.globalAlpha=1;ctx.fillStyle='#ffffff';
   ctx.fillRect(Math.min(w-2,Math.max(0,w*prog-1)),0,2,h);
   ctx.restore();
 }
 window.addEventListener('resize',drawTrackMap);
-
 $('tmap').onclick=function(e){
   if(!audio.duration||!isFinite(audio.duration))return;
   var rect=$('tmap').getBoundingClientRect();
-  var ratio=Math.max(0,Math.min(1,(e.clientX-rect.left)/Math.max(1,rect.width)));
-  audio.currentTime=ratio*audio.duration;
+  audio.currentTime=Math.max(0,Math.min(1,(e.clientX-rect.left)/Math.max(1,rect.width)))*audio.duration;
   drawTrackMap();
 };
 
 /* =====================================================================
-   ЖИВЫЕ DJ-ПЭДЫ
+   ЖИВЫЕ DJ-ПЭДЫ И ПУЛЬТ ОБУЧЕНИЯ НЕЙРОСЕТИ (С ЭКСПОРТОМ / ИМПОРТОМ)
    ===================================================================== */
 function bindPad(id,onDown,onUp){
   var el=$(id),held=false;
   function down(e){if(e)e.preventDefault();if(held)return;held=true;el.className='sel';onDown();}
   function up(e){if(e)e.preventDefault();if(!held)return;held=false;el.className='alt';onUp();}
-  el.addEventListener('pointerdown',down);
-  el.addEventListener('pointerup',up);
-  el.addEventListener('pointerleave',up);
-  el.addEventListener('pointercancel',up);
+  el.addEventListener('pointerdown',down);el.addEventListener('pointerup',up);
+  el.addEventListener('pointerleave',up);el.addEventListener('pointercancel',up);
 }
 bindPad('padBuild',
   function(){pads.build=true;pads.buildAmt=0;},
-  function(){pads.build=false;pads.flashAmt=1;}
+  function(){
+    pads.build=false;pads.flashAmt=1;
+    BRAIN.trainAction('build',getActiveGenreKey(),lastNetX,lastNetY);
+    updateAiStatUI();
+  }
 );
 bindPad('padFlash',
-  function(){pads.flash=true;pads.flashAmt=1;},
+  function(){
+    pads.flash=true;pads.flashAmt=1;
+    BRAIN.trainAction('flash',getActiveGenreKey(),lastNetX,lastNetY);
+    updateAiStatUI();
+  },
   function(){pads.flash=false;}
 );
 bindPad('padDrop',
-  function(){pads.drop=true;},
+  function(){
+    pads.drop=true;
+    BRAIN.trainAction('drop',getActiveGenreKey(),lastNetX,lastNetY);
+    updateAiStatUI();
+  },
   function(){pads.drop=false;}
 );
+
+function pulseAiBtn(btn){btn.className='sel';setTimeout(function(){btn.className='alt';},320);}
+$('aiLike').onclick=function(){
+  pulseAiBtn($('aiLike'));
+  eyeHappyUntil=performance.now()+1200;
+  BRAIN.trainAction('like',getActiveGenreKey(),lastNetX,lastNetY);
+  $('aiThought').textContent='Запомнил этот световой рисунок!';
+  updateAiStatUI();
+};
+$('aiDrive').onclick=function(){
+  pulseAiBtn($('aiDrive'));
+  eyeHappyUntil=performance.now()+900;
+  BRAIN.trainAction('drive',getActiveGenreKey(),lastNetX,lastNetY);
+  $('aiThought').textContent='Усиливаю подачу и удары';
+  updateAiStatUI();
+};
+$('aiSoft').onclick=function(){
+  pulseAiBtn($('aiSoft'));
+  BRAIN.trainAction('soft',getActiveGenreKey(),lastNetX,lastNetY);
+  $('aiThought').textContent='Делаю переходы плавнее';
+  updateAiStatUI();
+};
+$('aiShiftPal').onclick=function(){
+  pulseAiBtn($('aiShiftPal'));
+  BRAIN.trainAction('shift',getActiveGenreKey(),lastNetX,lastNetY);
+  $('aiThought').textContent='Перестроил палитру под жанр';
+  updateAiStatUI();
+};
+$('aiExport').onclick=function(){
+  pulseAiBtn($('aiExport'));
+  var blob=new Blob([BRAIN.exportData()],{type:'application/json'});
+  var u=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=u;a.download='weights.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(u);},1000);
+};
+$('aiImport').onchange=function(e){
+  var f=e.target.files&&e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(){
+    if(BRAIN.importData(r.result)){
+      eyeHappyUntil=performance.now()+1200;
+      $('aiThought').textContent='Новый мозг ИИ успешно загружен!';
+      updateAiStatUI();
+    }else{
+      $('aiThought').textContent='Ошибка: неверный формат файла мозга';
+    }
+  };
+  r.readAsText(f);
+  e.target.value='';
+};
+$('aiReset').onclick=function(){
+  pulseAiBtn($('aiReset'));
+  BRAIN.reset();
+  updateAiStatUI();
+};
 
 /* =====================================================================
    УПРАВЛЕНИЕ РЕЖИМАМИ, СОЛО, БАЗОЙ ЖАНРОВ И ПАМЯТЬЮ ТРЕКОВ
@@ -1618,70 +1525,51 @@ function persistTrackPrefs(){
   tracks[cur].cfg={mmode:musicMode,solo:soloMode,genre:trackGenre,mud:antiMud?1:0,vpal:vPalMode};
   saveTrackMeta(tracks[cur]);
 }
-
 function setMusicMode(m,skipSave){
-  musicMode=m;
-  saveCfg('mmode',m);
+  musicMode=m;saveCfg('mmode',m);
   document.querySelectorAll('[data-m]').forEach(function(x){x.className=(x.getAttribute('data-m')===m)?'alt sel':'alt';});
-  var useBand=(musicMode==='pulse'||musicMode==='beat'||musicMode==='rain');
-  $('bandBox').style.opacity=useBand?'1':'0.45';
-  if(!skipSave)persistTrackPrefs();
+  $('bandBox').style.opacity=(musicMode==='pulse'||musicMode==='beat'||musicMode==='rain')?'1':'0.45';
+  if(!skipSave){
+    persistTrackPrefs();
+    if(lightOn&&audio&&!audio.paused&&mode!=='music'){initAudio();setMode('music');}
+  }
 }
-document.querySelectorAll('[data-m]').forEach(function(b){
-  b.onclick=function(){setMusicMode(b.getAttribute('data-m'));};
-});
+document.querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){setMusicMode(b.getAttribute('data-m'));};});
 
 function setVPal(p,skipSave){
-  vPalMode=p;
-  saveCfg('vpal',p);
+  vPalMode=p;saveCfg('vpal',p);
   document.querySelectorAll('[data-vpal]').forEach(function(x){x.className=(x.getAttribute('data-vpal')===p)?'alt sel':'alt';});
-  if(p!=='auto'){
-    var pair=VIRTUOSO_PALETTES[+p]||VIRTUOSO_PALETTES[0];
-    vTargetBase=pair[0];vTargetVocal=pair[1];
-  }
+  if(p!=='auto'){var pair=VIRTUOSO_PALETTES[+p]||VIRTUOSO_PALETTES[0];vTargetBase=pair[0];vTargetVocal=pair[1];}
   if(!skipSave)persistTrackPrefs();
 }
-document.querySelectorAll('[data-vpal]').forEach(function(b){
-  b.onclick=function(){setVPal(b.getAttribute('data-vpal'));};
-});
+document.querySelectorAll('[data-vpal]').forEach(function(b){b.onclick=function(){setVPal(b.getAttribute('data-vpal'));};});
 
 function setSoloMode(s,skipSave){
-  soloMode=s;
-  saveCfg('solo',s);
+  soloMode=s;saveCfg('solo',s);
   document.querySelectorAll('[data-solo]').forEach(function(x){x.className=(x.getAttribute('data-solo')===s)?'alt sel':'alt';});
   if(!skipSave)persistTrackPrefs();
 }
-document.querySelectorAll('[data-solo]').forEach(function(b){
-  b.onclick=function(){setSoloMode(b.getAttribute('data-solo'));};
-});
+document.querySelectorAll('[data-solo]').forEach(function(b){b.onclick=function(){setSoloMode(b.getAttribute('data-solo'));};});
 
 function setAntiMud(v,skipSave){
-  antiMud=!!v;
-  saveCfg('mud',antiMud?'1':'0');
-  $('mud').textContent='Анти-каша: '+(antiMud?'вкл':'выкл');
-  $('mud').className=antiMud?'sel':'alt';
+  antiMud=!!v;saveCfg('mud',antiMud?'1':'0');
+  $('mud').textContent='Анти-каша: '+(antiMud?'вкл':'выкл');$('mud').className=antiMud?'sel':'alt';
   if(!skipSave)persistTrackPrefs();
 }
 $('mud').onclick=function(){setAntiMud(!antiMud);};
 
 function setGenreMode(g,skipSave){
-  trackGenre=g;
-  saveCfg('genre',g);
+  trackGenre=g;saveCfg('genre',g);
   document.querySelectorAll('[data-g]').forEach(function(x){x.className=(x.getAttribute('data-g')===g)?'alt sel':'alt';});
   if(!skipSave)persistTrackPrefs();
 }
-document.querySelectorAll('[data-g]').forEach(function(b){
-  b.onclick=function(){setGenreMode(b.getAttribute('data-g'));};
-});
+document.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){setGenreMode(b.getAttribute('data-g'));};});
 
 function setSrcBand(s){
-  srcBand=s;
-  saveCfg('band',s);
+  srcBand=s;saveCfg('band',s);
   document.querySelectorAll('[data-s]').forEach(function(x){x.className=(+x.getAttribute('data-s')===s)?'alt sel':'alt';});
 }
-document.querySelectorAll('[data-s]').forEach(function(b){
-  b.onclick=function(){setSrcBand(+b.getAttribute('data-s'));};
-});
+document.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){setSrcBand(+b.getAttribute('data-s'));};});
 
 var lightOn=true,shuffle=false,repeatAll=true,recreating=false,curBlobUrl=null;
 function syncDeckUI(){
@@ -1693,17 +1581,12 @@ function syncDeckUI(){
   $('pTime').textContent=curT+' / '+durT;
 }
 $('playBtn').onclick=function(){
-  if(!audio.src){
-    if(tracks.length){if(lightOn)initAudio();playIndex(0);}
-    return;
-  }
-  if(audio.paused){if(lightOn)initAudio();audio.play().catch(function(){});}
-  else audio.pause();
+  if(!audio.src){if(tracks.length){if(lightOn)initAudio();playIndex(0);}return;}
+  if(audio.paused){if(lightOn)initAudio();audio.play().catch(function(){});}else audio.pause();
 };
 function onPlay(){
-  lastT=0;
-  syncDeckUI();
-  if(lightOn){initAudio();setMode('music');}else{setMode(null,true);}
+  lastT=0;syncDeckUI();
+  if(lightOn){initAudio();setMode('music');}else setMode(null,true);
 }
 function attachAudio(){
   audio.addEventListener('play',onPlay);
@@ -1711,61 +1594,43 @@ function attachAudio(){
   audio.addEventListener('loadedmetadata',syncDeckUI);
   audio.addEventListener('pause',function(){
     if(recreating)return;
-    syncDeckUI();
-    clearMeterUI();
+    syncDeckUI();clearMeterUI();
+    $('aiThought').textContent='Пауза · Ожидаю продолжения';
     $('tele').textContent='Пауза';
-    if(mode==='music'){
-      if(ambOn&&lightOn&&!audio.ended)setMode('ambient');
-      else setMode(null);
-    }
+    updateRobotEyes(performance.now(),'idle',0);
+    if(mode==='music'){if(ambOn&&lightOn&&!audio.ended)setMode('ambient');else setMode(null);}
   });
   audio.addEventListener('ended',function(){
     if(audio.duration&&isFinite(audio.duration)&&audio.duration>15&&audio.currentTime<audio.duration-2.5){
-      var resumeAt=audio.currentTime;
-      try{audio.currentTime=resumeAt;}catch(e){}
-      audio.play().catch(function(){});
-      return;
+      var resumeAt=audio.currentTime;try{audio.currentTime=resumeAt;}catch(e){}
+      audio.play().catch(function(){});return;
     }
-    syncDeckUI();
-    clearMeterUI();
-    if(mode==='music'||mode==='ambient'){
-      if(ambOn&&lightOn)setMode('ambient');
-      else setMode(null);
-    }
+    syncDeckUI();clearMeterUI();
+    if(mode==='music'||mode==='ambient'){if(ambOn&&lightOn)setMode('ambient');else setMode(null);}
     nextTrack(1,true);
   });
 }
 function recreateAudio(){
   var old=audio,u=old.src,pos=old.currentTime,was=!old.paused;
-  recreating=true;
-  old.pause();
-  var a=document.createElement('audio');
-  a.id='audio';a.className='hid';a.preload='auto';a.setAttribute('playsinline','');
-  old.parentNode.replaceChild(a,old);
-  audio=a;anFile=null;dly=null;
-  recreating=false;
-  attachAudio();
+  recreating=true;old.pause();
+  var a=document.createElement('audio');a.id='audio';a.className='hid';a.preload='auto';a.setAttribute('playsinline','');
+  old.parentNode.replaceChild(a,old);audio=a;anFile=null;dly=null;recreating=false;attachAudio();
   if(!lightOn&&(mode==='music'||mode==='ambient'))setMode(null,true);
   if(u){
     a.src=u;
     a.addEventListener('loadedmetadata',function(){
-      try{a.currentTime=pos;}catch(e){}
-      syncDeckUI();
+      try{a.currentTime=pos;}catch(e){}syncDeckUI();
       if(was){if(lightOn)initAudio();a.play().catch(function(){});}
     },{once:true});
   }
 }
 $('lt').onclick=function(){
-  lightOn=!lightOn;
-  $('lt').textContent='Свет под музыку: '+(lightOn?'вкл':'выкл (фоновый плеер)');
-  $('lt').className=lightOn?'sel':'alt';
-  recreateAudio();
+  lightOn=!lightOn;$('lt').textContent='Свет под музыку: '+(lightOn?'вкл':'выкл (фоновый плеер)');
+  $('lt').className=lightOn?'sel':'alt';recreateAudio();
 };
 $('amb').onclick=function(){
-  ambOn=!ambOn;
-  saveCfg('amb',ambOn?'1':'0');
-  $('amb').textContent='Подложка в тишине: '+(ambOn?'вкл':'выкл');
-  $('amb').className=ambOn?'sel':'alt';
+  ambOn=!ambOn;saveCfg('amb',ambOn?'1':'0');
+  $('amb').textContent='Подложка в тишине: '+(ambOn?'вкл':'выкл');$('amb').className=ambOn?'sel':'alt';
   if(!ambOn&&mode==='ambient'){setMode(null,true);sendRGB(0,0,0,true,true);}
 };
 $('prev').onclick=function(){if(lightOn)initAudio();nextTrack(-1);};
@@ -1773,8 +1638,7 @@ $('next').onclick=function(){if(lightOn)initAudio();nextTrack(1);};
 $('shuf').onclick=function(){shuffle=!shuffle;$('shuf').className=shuffle?'sel':'alt';};
 $('rep').onclick=function(){repeatAll=!repeatAll;$('rep').className=repeatAll?'sel':'alt';};
 $('file').onchange=function(e){
-  var fs=e.target.files;if(!fs.length)return;
-  if(lightOn)initAudio();
+  var fs=e.target.files;if(!fs.length)return;if(lightOn)initAudio();
   for(var i=0;i<fs.length;i++)saveTrack(fs[i],i===0);
   e.target.value='';
 };
@@ -1782,28 +1646,17 @@ attachAudio();
 
 /* Библиотека треков + память настроек, жанров и карт в IndexedDB */
 var db=null,tracks=[],cur=-1,nowName='';
-function fmtDur(sec){
-  if(!sec||!isFinite(sec))return '';
-  var m=Math.floor(sec/60),s=Math.floor(sec%60);
-  return m+':'+(s<10?'0':'')+s;
-}
+function fmtDur(sec){if(!sec||!isFinite(sec))return '';var m=Math.floor(sec/60),s=Math.floor(sec%60);return m+':'+(s<10?'0':'')+s;}
 function dbOpen(cb){
   try{
     var r=indexedDB.open('led-music',2);
-    r.onupgradeneeded=function(){
-      if(!r.result.objectStoreNames.contains('tracks')){
-        r.result.createObjectStore('tracks',{keyPath:'id',autoIncrement:true});
-      }
-    };
+    r.onupgradeneeded=function(){if(!r.result.objectStoreNames.contains('tracks'))r.result.createObjectStore('tracks',{keyPath:'id',autoIncrement:true});};
     r.onsuccess=function(){db=r.result;cb();};
   }catch(e){}
 }
 function saveTrackMeta(obj){
   if(!db||!obj||!obj.id)return;
-  try{
-    var tx=db.transaction('tracks','readwrite');
-    tx.objectStore('tracks').put(obj);
-  }catch(e){}
+  try{db.transaction('tracks','readwrite').objectStore('tracks').put(obj);}catch(e){}
 }
 function listTracks(autoPlayName){
   if(!db)return;
@@ -1814,11 +1667,7 @@ function listTracks(autoPlayName){
       tracks=arr;cur=-1;
       for(var i=0;i<tracks.length;i++)if(tracks[i].name===nowName)cur=i;
       renderLib();
-      if(autoPlayName){
-        for(var j=0;j<tracks.length;j++){
-          if(tracks[j].name===autoPlayName){playIndex(j);break;}
-        }
-      }
+      if(autoPlayName)for(var j=0;j<tracks.length;j++)if(tracks[j].name===autoPlayName){playIndex(j);break;}
       return;
     }
     arr.push(c.value);c.continue();
@@ -1827,48 +1676,28 @@ function listTracks(autoPlayName){
 function renderLib(){
   var box=$('lib');box.innerHTML='';
   tracks.forEach(function(v,i){
-    var row=document.createElement('div');
-    row.className='trk'+(i===cur?' active':'');
+    var row=document.createElement('div');row.className='trk'+(i===cur?' active':'');
     var n=document.createElement('span');n.textContent=v.name;
     n.onclick=function(){
-      if(i===cur&&audio.src){
-        if(audio.paused){if(lightOn)initAudio();audio.play().catch(function(){});}
-        else audio.pause();
-        return;
-      }
-      if(lightOn)initAudio();
-      playIndex(i);
+      if(i===cur&&audio.src){if(audio.paused){if(lightOn)initAudio();audio.play().catch(function(){});}else audio.pause();return;}
+      if(lightOn)initAudio();playIndex(i);
     };
     row.appendChild(n);
-    var gTag=(v.cfg&&v.cfg.genre&&v.cfg.genre!=='auto'&&GENRE_DB[v.cfg.genre])?GENRE_DB[v.cfg.genre].name:((v.map&&v.map.genre&&GENRE_DB[v.map.genre])?GENRE_DB[v.map.genre].name:'');
-    if(gTag){
-      var gt=document.createElement('small');gt.textContent=gTag;
-      row.appendChild(gt);
-    }
-    if(v.dur){
-      var tm=document.createElement('small');tm.textContent=fmtDur(v.dur);
-      row.appendChild(tm);
-    }
+    var gKey=(v.cfg&&v.cfg.genre&&v.cfg.genre!=='auto')?v.cfg.genre:((v.map&&v.map.genre)?v.map.genre:'');
+    var gTag=(gKey&&BRAIN.genres[gKey])?BRAIN.genres[gKey].name:'';
+    if(gTag){var gt=document.createElement('small');gt.textContent=gTag;row.appendChild(gt);}
+    if(v.dur){var tm=document.createElement('small');tm.textContent=fmtDur(v.dur);row.appendChild(tm);}
     var x=document.createElement('b');x.textContent='Уд';x.onclick=function(){delTrack(v.id);};
     row.appendChild(x);box.appendChild(row);
   });
 }
 function saveTrack(f,playAfter){
   if(!db){if(playAfter)playBlob(f,f.name);return;}
-  for(var i=0;i<tracks.length;i++){
-    if(tracks[i].name===f.name){
-      if(playAfter)playIndex(i);
-      return;
-    }
-  }
-  var probe=document.createElement('audio');
-  var u=URL.createObjectURL(f);
-  probe.preload='metadata';
-  probe.src=u;
+  for(var i=0;i<tracks.length;i++)if(tracks[i].name===f.name){if(playAfter)playIndex(i);return;}
+  var probe=document.createElement('audio'),u=URL.createObjectURL(f);probe.preload='metadata';probe.src=u;
   var done=false;
   function commit(dur){
-    if(done)return;done=true;
-    URL.revokeObjectURL(u);
+    if(done)return;done=true;URL.revokeObjectURL(u);
     try{
       var tx=db.transaction('tracks','readwrite');
       tx.objectStore('tracks').add({name:f.name,blob:f,dur:dur||0,map:null,cfg:null});
@@ -1902,36 +1731,27 @@ function guessAudioMime(name){
 var playSeq=0;
 function playBlob(b,name,onBuf){
   if(!b)return;
-  var seq=++playSeq;
-  nowName=name||'';
-  $('pTitle').textContent=nowName||'Трек не выбран';
-  $('pTime').textContent='0:00 / 0:00';
-  fileHintGenre=detectFileHint(nowName);
-  resetAudioStats();
-  setMeta(nowName);
-  drawTrackMap();
+  var seq=++playSeq;nowName=name||'';
+  $('pTitle').textContent=nowName||'Трек не выбран';$('pTime').textContent='0:00 / 0:00';
+  fileHintGenre=BRAIN.detectHint(nowName);
+  resetAudioStats();setMeta(nowName);drawTrackMap();
   readBlobBuffer(b).then(function(ab){
     if(seq!==playSeq)return;
-    var mime=(b&&b.type)?b.type:guessAudioMime(name);
-    var memBlob=new Blob([ab],{type:mime});
+    var memBlob=new Blob([ab],{type:(b&&b.type)?b.type:guessAudioMime(name)});
     if(curBlobUrl)URL.revokeObjectURL(curBlobUrl);
     curBlobUrl=URL.createObjectURL(memBlob);
-    audio.preload='auto';
-    audio.src=curBlobUrl;
-    audio.play().catch(function(){});
+    audio.preload='auto';audio.src=curBlobUrl;audio.play().catch(function(){});
     if(onBuf)onBuf(ab.slice(0));
   }).catch(function(){
     if(seq!==playSeq)return;
     if(curBlobUrl)URL.revokeObjectURL(curBlobUrl);
     curBlobUrl=URL.createObjectURL(b);
-    audio.src=curBlobUrl;
-    audio.play().catch(function(){});
+    audio.src=curBlobUrl;audio.play().catch(function(){});
   });
 }
 function playIndex(i){
   if(i<0||i>=tracks.length)return;
-  cur=i;
-  var tr=tracks[i];
+  cur=i;var tr=tracks[i];
   if(tr.cfg){
     if(tr.cfg.mmode)setMusicMode(tr.cfg.mmode,true);
     if(tr.cfg.solo)setSoloMode(tr.cfg.solo,true);
@@ -1947,10 +1767,7 @@ function nextTrack(dir,auto){
   if(!tracks.length)return;
   var i;
   if(shuffle&&tracks.length>1){do{i=Math.floor(Math.random()*tracks.length);}while(i===cur);}
-  else{
-    i=cur+dir;
-    if(i>=tracks.length||i<0){if(!repeatAll&&auto)return;i=(i+tracks.length)%tracks.length;}
-  }
+  else{i=cur+dir;if(i>=tracks.length||i<0){if(!repeatAll&&auto)return;i=(i+tracks.length)%tracks.length;}}
   playIndex(i);
 }
 dbOpen(function(){listTracks();});
@@ -1959,8 +1776,7 @@ dbOpen(function(){listTracks();});
 $('sens').oninput=function(e){$('sv').textContent=e.target.value;saveCfg('sens',e.target.value);};
 function setDelay(v){
   v=Math.max(0,Math.min(600,v));
-  $('dly').value=v;$('dv').textContent=v;
-  saveCfg('dly',v);
+  $('dly').value=v;$('dv').textContent=v;saveCfg('dly',v);
   if(dly)dly.delayTime.value=v/1000;
 }
 $('dly').oninput=function(e){setDelay(+e.target.value);};
@@ -1968,29 +1784,18 @@ $('dlym').onclick=function(){setDelay(+$('dly').value-25);};
 $('dlyp').onclick=function(){setDelay(+$('dly').value+25);};
 
 var tapTimes=[],tapTimer=0;
-function resetTapBtn(){
-  tapTimes=[];
-  $('tapSync').className='alt';
-  $('tapSync').textContent='Поймать ритм (4 тапа)';
-}
+function resetTapBtn(){tapTimes=[];$('tapSync').className='alt';$('tapSync').textContent='Поймать ритм (4 тапа)';}
 $('tapSync').onclick=function(){
-  var now=performance.now();
-  clearTimeout(tapTimer);
+  var now=performance.now();clearTimeout(tapTimer);
   if(tapTimes.length&&now-tapTimes[tapTimes.length-1]>2200)tapTimes=[];
-  tapTimes.push(now);
-  $('tapSync').className='sel';
+  tapTimes.push(now);$('tapSync').className='sel';
   if(tapTimes.length<4){
     $('tapSync').textContent='Тап '+tapTimes.length+' / 4 — держи ритм...';
     if(!anFile||audio.paused)$('tapInfo').textContent='Включи музыку и нажми 4 раза в такт вспышкам ленты';
-    tapTimer=setTimeout(resetTapBtn,2500);
-    return;
+    tapTimer=setTimeout(resetTapBtn,2500);return;
   }
-  var period=(tapTimes[3]-tapTimes[0])/3;
-  var bpm=Math.round(60000/Math.max(200,period));
-  if(period<220||period>2000){
-    $('tapInfo').textContent='Сбился ритм — попробуй ещё 4 тапа';
-    resetTapBtn();return;
-  }
+  var period=(tapTimes[3]-tapTimes[0])/3,bpm=Math.round(60000/Math.max(200,period));
+  if(period<220||period>2000){$('tapInfo').textContent='Сбился ритм — попробуй ещё 4 тапа';resetTapBtn();return;}
   var diffs=[],i;
   for(i=0;i<rawBeats.length;i++){
     if(now-rawBeats[i]>4500)continue;
@@ -2002,16 +1807,10 @@ $('tapSync').onclick=function(){
   }
   if(diffs.length){
     diffs.sort(function(a,b){return a-b;});
-    var med=diffs[Math.floor(diffs.length/2)];
-    var calc=Math.max(0,Math.min(600,Math.round(med/5)*5));
-    setDelay(calc);
-    $('tapSync').textContent='Готово: '+calc+' мс';
-    $('tapInfo').textContent='Задержка: '+calc+' мс ('+bpm+' BPM)';
-  }else{
-    $('tapInfo').textContent='Включи музыку громче и нажми 4 раза в такт ('+bpm+' BPM)';
-  }
-  tapTimes=[];
-  tapTimer=setTimeout(resetTapBtn,2200);
+    var calc=Math.max(0,Math.min(600,Math.round(diffs[Math.floor(diffs.length/2)]/5)*5));
+    setDelay(calc);$('tapSync').textContent='Готово: '+calc+' мс';$('tapInfo').textContent='Задержка: '+calc+' мс ('+bpm+' BPM)';
+  }else $('tapInfo').textContent='Включи музыку громче и нажми 4 раза в такт ('+bpm+' BPM)';
+  tapTimes=[];tapTimer=setTimeout(resetTapBtn,2200);
 };
 
 /* Не гасить экран */
@@ -2019,16 +1818,12 @@ var wl=null,wakeWanted=true;
 function wakeOn(){
   if(!wakeWanted||wl)return;
   if(!navigator.wakeLock){$('wkst').textContent='Браузер не поддерживает: отключи автоблокировку в настройках телефона';return;}
-  navigator.wakeLock.request('screen').then(function(l){
-    wl=l;l.addEventListener('release',function(){wl=null;});$('wkst').textContent='Экран не гаснет';
-  }).catch(function(){$('wkst').textContent='Не удалось: отключи автоблокировку в настройках телефона';});
+  navigator.wakeLock.request('screen').then(function(l){wl=l;l.addEventListener('release',function(){wl=null;});$('wkst').textContent='Экран не гаснет';}).catch(function(){$('wkst').textContent='Не удалось: отключи автоблокировку в настройках телефона';});
 }
 function wakeOff(){if(wl){wl.release();wl=null;}$('wkst').textContent='';}
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&mode)wakeOn();});
 $('wk').onclick=function(){
-  wakeWanted=!wakeWanted;
-  $('wk').textContent='Не гасить экран: '+(wakeWanted?'вкл':'выкл');
-  $('wk').className=wakeWanted?'sel':'alt';
+  wakeWanted=!wakeWanted;$('wk').textContent='Не гасить экран: '+(wakeWanted?'вкл':'выкл');$('wk').className=wakeWanted?'sel':'alt';
   if(wakeWanted&&mode)wakeOn();else wakeOff();
 };
 
@@ -2044,21 +1839,13 @@ document.querySelectorAll('[data-sleep]').forEach(function(b){
 setInterval(function(){
   if(!timerEnd)return;
   var left=timerEnd-Date.now();
-  if(left<=0){
-    timerEnd=0;fadeK=0;$('tinfo').textContent='Выключено';
-    audio.pause();setMode(null,true);
-    sendRGB(0,0,0,true,true);return;
-  }
+  if(left<=0){timerEnd=0;fadeK=0;$('tinfo').textContent='Выключено';audio.pause();setMode(null,true);sendRGB(0,0,0,true,true);return;}
   fadeK=Math.min(1,left/Math.min(timerDur,300000));
   $('tinfo').textContent='Осталось: '+Math.ceil(left/60000)+' мин';
   if(!mode)sendStatic(false);
 },300);
 document.querySelectorAll('[data-sun]').forEach(function(b){
-  b.onclick=function(){
-    timerEnd=0;fadeK=1;$('tinfo').textContent='';
-    sunDur=+b.getAttribute('data-sun')*60000;sunT0=performance.now();
-    setMode('sunrise');
-  };
+  b.onclick=function(){timerEnd=0;fadeK=1;$('tinfo').textContent='';sunDur=+b.getAttribute('data-sun')*60000;sunT0=performance.now();setMode('sunrise');};
 });
 
 /* Восстановление настроек цвета, эффектов и музыки */
@@ -2074,83 +1861,51 @@ document.querySelectorAll('[data-sun]').forEach(function(b){
   setSrcBand(+loadCfg('band','0'));
   var s=+loadCfg('sens','100');$('sens').value=s;$('sv').textContent=s;
   setDelay(+loadCfg('dly','200'));
-  if(loadCfg('amb','1')==='0'){
-    ambOn=false;$('amb').textContent='Подложка в тишине: выкл';$('amb').className='alt';
-  }
+  if(loadCfg('amb','1')==='0'){ambOn=false;$('amb').textContent='Подложка в тишине: выкл';$('amb').className='alt';}
+  updateAiStatUI('--');
+  updateRobotEyes(performance.now(),'idle',0);
 })();
 
 /* Тема */
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   $('theme').textContent=(t==='dark')?'День':'Ночь';
-  var mt=$('metaTheme');
-  if(mt)mt.setAttribute('content',t==='dark'?'#07070b':'#f4f5f8');
+  var mt=$('metaTheme');if(mt)mt.setAttribute('content',t==='dark'?'#07070b':'#f4f5f8');
 }
 (function(){
   applyTheme(loadCfg('theme','dark'));
-  $('theme').onclick=function(){
-    var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
-    applyTheme(t);
-    saveCfg('theme',t);
-  };
+  $('theme').onclick=function(){var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';applyTheme(t);saveCfg('theme',t);};
 })();
 
 /* =====================================================================
    АВТОМОБИЛЬНЫЙ РЕЖИМ (ДЕНЬ / НОЧЬ ПО ГЕО ИЛИ ВРЕМЕНИ)
    ===================================================================== */
-var carOn=false,carSrc='geo',carDayB=100,carNightB=15,carEye=true,carTheme=true;
-var carLat=null,carLon=null,carIsNight=false;
-
-function fmtHm(ts){
-  var d=new Date(ts),h=d.getHours(),m=d.getMinutes();
-  return (h<10?'0':'')+h+':'+(m<10?'0':'')+m;
-}
-
+var carOn=false,carSrc='geo',carDayB=100,carNightB=15,carEye=true,carTheme=true,carLat=null,carLon=null,carIsNight=false;
+function fmtHm(ts){var d=new Date(ts),h=d.getHours(),m=d.getMinutes();return (h<10?'0':'')+h+':'+(m<10?'0':'')+m;}
 function calcSunTimes(d,lat,lon){
   var start=new Date(d.getFullYear(),d.getMonth(),d.getDate(),12,0,0);
-  var n=Math.floor((start-new Date(d.getFullYear(),0,0))/86400000);
-  var rad=Math.PI/180;
-  var g=(2*Math.PI/365)*(n-1);
+  var n=Math.floor((start-new Date(d.getFullYear(),0,0))/86400000),rad=Math.PI/180,g=(2*Math.PI/365)*(n-1);
   var eq=229.18*(0.000075+0.001868*Math.cos(g)-0.032077*Math.sin(g)-0.014615*Math.cos(2*g)-0.040849*Math.sin(2*g));
   var decl=0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)-0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g);
-  var latR=lat*rad;
-  var cosH=(Math.cos(90.833*rad)/(Math.cos(latR)*Math.cos(decl)))-Math.tan(latR)*Math.tan(decl);
-  if(cosH>1)return {alwaysNight:true};
-  if(cosH<-1)return {alwaysDay:true};
-  var ha=Math.acos(cosH)/rad;
-  var utcBase=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(),0,0,0);
-  return {
-    rise:utcBase+(720-4*(lon+ha)-eq)*60000,
-    set:utcBase+(720-4*(lon-ha)-eq)*60000
-  };
+  var latR=lat*rad,cosH=(Math.cos(90.833*rad)/(Math.cos(latR)*Math.cos(decl)))-Math.tan(latR)*Math.tan(decl);
+  if(cosH>1)return {alwaysNight:true};if(cosH<-1)return {alwaysDay:true};
+  var ha=Math.acos(cosH)/rad,utcBase=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate(),0,0,0);
+  return {rise:utcBase+(720-4*(lon+ha)-eq)*60000,set:utcBase+(720-4*(lon-ha)-eq)*60000};
 }
-
-function parseClockTs(baseDate,hmStr){
-  var p=(hmStr||'07:00').split(':');
-  return new Date(baseDate.getFullYear(),baseDate.getMonth(),baseDate.getDate(),+p[0]||0,+p[1]||0,0).getTime();
-}
-
+function parseClockTs(baseDate,hmStr){var p=(hmStr||'07:00').split(':');return new Date(baseDate.getFullYear(),baseDate.getMonth(),baseDate.getDate(),+p[0]||0,+p[1]||0,0).getTime();}
 function updateCarMode(forceSend){
-  var now=new Date(),nowMs=now.getTime();
-  var dayFactor=1,infoTxt='';
-
-  if(carSrc==='night'){
-    dayFactor=0;
-    infoTxt='Принудительно ночь (туннель / паркинг)';
-  }else{
+  var now=new Date(),nowMs=now.getTime(),dayFactor=1,infoTxt='';
+  if(carSrc==='night'){dayFactor=0;infoTxt='Принудительно ночь (туннель / паркинг)';}
+  else{
     var riseMs=0,setMs=0,usedGeo=false;
     if(carSrc==='geo'&&carLat!==null&&carLon!==null){
       var sun=calcSunTimes(now,carLat,carLon);
       if(sun.alwaysNight){dayFactor=0;infoTxt='Полярная ночь · авто-снижение яркости';usedGeo=true;}
       else if(sun.alwaysDay){dayFactor=1;infoTxt='Полярный день · дневной свет';usedGeo=true;}
-      else{
-        riseMs=sun.rise;setMs=sun.set;usedGeo=true;
-        $('carGeoInfo').textContent='Рассвет '+fmtHm(riseMs)+' · Закат '+fmtHm(setMs)+' ('+carLat.toFixed(2)+', '+carLon.toFixed(2)+')';
-      }
+      else{riseMs=sun.rise;setMs=sun.set;usedGeo=true;$('carGeoInfo').textContent='Рассвет '+fmtHm(riseMs)+' · Закат '+fmtHm(setMs)+' ('+carLat.toFixed(2)+', '+carLon.toFixed(2)+')';}
     }
     if(!usedGeo){
-      riseMs=parseClockTs(now,$('carDayT').value);
-      setMs=parseClockTs(now,$('carNightT').value);
+      riseMs=parseClockTs(now,$('carDayT').value);setMs=parseClockTs(now,$('carNightT').value);
       if(carSrc==='geo')$('carGeoInfo').textContent='Нет геоданных — работает резерв по часам ('+$('carDayT').value+'–'+$('carNightT').value+')';
     }
     if(riseMs&&setMs){
@@ -2160,121 +1915,64 @@ function updateCarMode(forceSend){
         else if(nowMs<=riseMs+tw)dayFactor=(nowMs-(riseMs-tw))/(2*tw);
         else if(nowMs>=setMs-tw)dayFactor=1-(nowMs-(setMs-tw))/(2*tw);
         else dayFactor=1;
-      }else{
-        dayFactor=(nowMs>=riseMs||nowMs<setMs)?1:0;
-      }
+      }else dayFactor=(nowMs>=riseMs||nowMs<setMs)?1:0;
       var nextEv=(nowMs<riseMs)?('рассвет в '+fmtHm(riseMs)):(nowMs<setMs?('закат в '+fmtHm(setMs)):('рассвет в '+fmtHm(riseMs+86400000)));
       infoTxt=(dayFactor<0.5?'Ночь':'День')+' ('+nextEv+')';
     }
   }
-
   carIsNight=dayFactor<0.5;
   var targetB=Math.round(carNightB+(carDayB-carNightB)*dayFactor);
-
-  if(!carOn){
-    $('carStatus').textContent='Выключено · '+infoTxt;
-    return;
-  }
-
+  if(!carOn){$('carStatus').textContent='Выключено · '+infoTxt;return;}
   $('carStatus').textContent='Активно: '+infoTxt+' · Яркость '+targetB+'%';
   if(carTheme){
     var wantTheme=carIsNight?'dark':'light';
-    if(document.documentElement.getAttribute('data-theme')!==wantTheme){
-      applyTheme(wantTheme);
-      saveCfg('theme',wantTheme);
-    }
+    if(document.documentElement.getAttribute('data-theme')!==wantTheme){applyTheme(wantTheme);saveCfg('theme',wantTheme);}
   }
-  if(bright!==targetB||forceSend){
-    setBright(targetB,false);
-    if(!mode)sendStatic(true);
-  }
+  if(bright!==targetB||forceSend){setBright(targetB,false);if(!mode)sendStatic(true);}
 }
-
 function requestCarGeo(){
-  if(!navigator.geolocation){
-    $('carGeoInfo').textContent='Геолокация не поддерживается браузером';
-    return;
-  }
+  if(!navigator.geolocation){$('carGeoInfo').textContent='Геолокация не поддерживается браузером';return;}
   $('carGeoInfo').textContent='Определение координат...';
   navigator.geolocation.getCurrentPosition(function(pos){
-    carLat=pos.coords.latitude;
-    carLon=pos.coords.longitude;
-    saveCfg('car-lat',carLat);
-    saveCfg('car-lon',carLon);
-    updateCarMode(true);
+    carLat=pos.coords.latitude;carLon=pos.coords.longitude;saveCfg('car-lat',carLat);saveCfg('car-lon',carLon);updateCarMode(true);
   },function(){
-    $('carGeoInfo').textContent='Доступ к гео запрещён — используется расписание по часам';
-    updateCarMode(false);
+    $('carGeoInfo').textContent='Доступ к гео запрещён — используется расписание по часам';updateCarMode(false);
   },{enableHighAccuracy:false,timeout:8000,maximumAge:600000});
 }
-
 function setCarSrc(s){
-  carSrc=s;
-  saveCfg('car-src',s);
+  carSrc=s;saveCfg('car-src',s);
   document.querySelectorAll('[data-csrc]').forEach(function(b){b.className=(b.getAttribute('data-csrc')===s)?'alt sel':'alt';});
-  $('carGeoBox').classList.toggle('hid',s!=='geo');
-  $('carTimeBox').classList.toggle('hid',s!=='time');
+  $('carGeoBox').classList.toggle('hid',s!=='geo');$('carTimeBox').classList.toggle('hid',s!=='time');
   if(s==='geo'&&carLat===null)requestCarGeo();
   updateCarMode(true);
 }
-
 $('carOn').onclick=function(){
-  carOn=!carOn;
-  saveCfg('car-on',carOn?'1':'0');
-  $('carOn').textContent='Авто-свет в салоне: '+(carOn?'вкл':'выкл');
-  $('carOn').className=carOn?'sel':'alt';
-  if(carOn){
-    if(carSrc==='geo'&&carLat===null)requestCarGeo();
-    updateCarMode(true);
-  }else{
-    setBright(manualBright,false);
-    if(!mode)sendStatic(true);
-    updateCarMode(false);
-  }
+  carOn=!carOn;saveCfg('car-on',carOn?'1':'0');
+  $('carOn').textContent='Авто-свет в салоне: '+(carOn?'вкл':'выкл');$('carOn').className=carOn?'sel':'alt';
+  if(carOn){if(carSrc==='geo'&&carLat===null)requestCarGeo();updateCarMode(true);}
+  else{setBright(manualBright,false);if(!mode)sendStatic(true);updateCarMode(false);}
 };
-document.querySelectorAll('[data-csrc]').forEach(function(b){
-  b.onclick=function(){setCarSrc(b.getAttribute('data-csrc'));};
-});
+document.querySelectorAll('[data-csrc]').forEach(function(b){b.onclick=function(){setCarSrc(b.getAttribute('data-csrc'));};});
 $('carGeoBtn').onclick=requestCarGeo;
 $('carDayT').onchange=function(e){saveCfg('car-dt',e.target.value);updateCarMode(true);};
 $('carNightT').onchange=function(e){saveCfg('car-nt',e.target.value);updateCarMode(true);};
 $('carDayB').oninput=function(e){carDayB=+e.target.value;$('cdv').textContent=carDayB;saveCfg('car-db',carDayB);updateCarMode(true);};
 $('carNightB').oninput=function(e){carNightB=+e.target.value;$('cnv').textContent=carNightB;saveCfg('car-nb',carNightB);updateCarMode(true);};
-$('carEye').onclick=function(){
-  carEye=!carEye;saveCfg('car-eye',carEye?'1':'0');
-  $('carEye').textContent='Защита зрения ночью: '+(carEye?'вкл':'выкл');
-  $('carEye').className=carEye?'sel':'alt';
-  if(!mode)sendStatic(true);
-};
-$('carTheme').onclick=function(){
-  carTheme=!carTheme;saveCfg('car-thm',carTheme?'1':'0');
-  $('carTheme').textContent='Тёмный экран ночью: '+(carTheme?'вкл':'выкл');
-  $('carTheme').className=carTheme?'sel':'alt';
-  updateCarMode(false);
-};
+$('carEye').onclick=function(){carEye=!carEye;saveCfg('car-eye',carEye?'1':'0');$('carEye').textContent='Защита зрения ночью: '+(carEye?'вкл':'выкл');$('carEye').className=carEye?'sel':'alt';if(!mode)sendStatic(true);};
+$('carTheme').onclick=function(){carTheme=!carTheme;saveCfg('car-thm',carTheme?'1':'0');$('carTheme').textContent='Тёмный экран ночью: '+(carTheme?'вкл':'выкл');$('carTheme').className=carTheme?'sel':'alt';updateCarMode(false);};
 
-/* Восстановление настроек вкладки Авто */
 (function(){
   var lat=loadCfg('car-lat',''),lon=loadCfg('car-lon','');
   if(lat!==''&&lon!==''){carLat=+lat;carLon=+lon;}
-  $('carDayT').value=loadCfg('car-dt','07:00');
-  $('carNightT').value=loadCfg('car-nt','20:00');
+  $('carDayT').value=loadCfg('car-dt','07:00');$('carNightT').value=loadCfg('car-nt','20:00');
   carDayB=+loadCfg('car-db','100');$('carDayB').value=carDayB;$('cdv').textContent=carDayB;
   carNightB=+loadCfg('car-nb','15');$('carNightB').value=carNightB;$('cnv').textContent=carNightB;
-  carEye=loadCfg('car-eye','1')==='1';
-  $('carEye').textContent='Защита зрения ночью: '+(carEye?'вкл':'выкл');
-  $('carEye').className=carEye?'sel':'alt';
-  carTheme=loadCfg('car-thm','1')==='1';
-  $('carTheme').textContent='Тёмный экран ночью: '+(carTheme?'вкл':'выкл');
-  $('carTheme').className=carTheme?'sel':'alt';
-  carOn=loadCfg('car-on','0')==='1';
-  $('carOn').textContent='Авто-свет в салоне: '+(carOn?'вкл':'выкл');
-  $('carOn').className=carOn?'sel':'alt';
+  carEye=loadCfg('car-eye','1')==='1';$('carEye').textContent='Защита зрения ночью: '+(carEye?'вкл':'выкл');$('carEye').className=carEye?'sel':'alt';
+  carTheme=loadCfg('car-thm','1')==='1';$('carTheme').textContent='Тёмный экран ночью: '+(carTheme?'вкл':'выкл');$('carTheme').className=carTheme?'sel':'alt';
+  carOn=loadCfg('car-on','0')==='1';$('carOn').textContent='Авто-свет в салоне: '+(carOn?'вкл':'выкл');$('carOn').className=carOn?'sel':'alt';
   setCarSrc(loadCfg('car-src','geo'));
 })();
 setInterval(function(){if(carOn)updateCarMode(false);},15000);
-
-/* Статус подключения: зелёная точка */
 setInterval(function(){st.className=(ch?'ok':'');},500);
 </script>
 </body>
