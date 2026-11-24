@@ -123,7 +123,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 </head>
 <body>
 <div class="top">
-  <div class="brand"><h1>LED лента</h1><span id="ver">версия 30</span></div>
+  <div class="brand"><h1>LED лента</h1><span id="ver">версия 31</span></div>
   <button id="theme" class="alt ic">День</button>
 </div>
 <div class="card conn-card">
@@ -244,13 +244,21 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 <label style="margin-top:12px">База жанров (определяет цвета и характер ИИ)</label>
 <div class="grid4">
 <button class="alt sel" data-g="auto">Авто (ИИ)</button>
-<button class="alt" data-g="phonk">Фонк/Трэп</button>
-<button class="alt" data-g="edm">EDM/Хаус</button>
+<button class="alt" data-g="phonk">Фонк</button>
+<button class="alt" data-g="trap">Трэп</button>
+<button class="alt" data-g="edm">EDM / Клуб</button>
+<button class="alt" data-g="house">Хаус / Дип</button>
+<button class="alt" data-g="techno">Техно</button>
+<button class="alt" data-g="dnb">Драм-н-Бейс</button>
+<button class="alt" data-g="dubstep">Дабстеп</button>
 <button class="alt" data-g="hiphop">Хип-Хоп</button>
-<button class="alt" data-g="pop">Поп/Вокал</button>
+<button class="alt" data-g="pop">Поп</button>
+<button class="alt" data-g="rnb">R&B / Соул</button>
 <button class="alt" data-g="rock">Рок</button>
+<button class="alt" data-g="metal">Метал</button>
 <button class="alt" data-g="synth">Синтвейв</button>
 <button class="alt" data-g="lofi">Лоу-фай</button>
+<button class="alt" data-g="cinematic">Саундтрек</button>
 </div>
 
 <label>Чувствительность: <span id="sv">100</span>%</label>
@@ -341,235 +349,127 @@ function write(p,prio){
   var pkt=new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]);
   var op=ch.writeValueWithoutResponse?ch.writeValueWithoutResponse(pkt):ch.writeValue(pkt);
   op.catch(function(){
-    if(ch){werr++;$('ver').textContent='версия 30 · сбоев: '+werr;}
+    if(ch){werr++;$('ver').textContent='версия 31 · сбоев: '+werr;}
   }).then(function(){
-    busy=false;
-    if(pending){
-      var q=pending,qp=pendingPrio;
-      pending=null;pendingPrio=false;
-      write(q,qp);
-    }
-  });
-}
-
-function sendRGB(r,g,b,force,prio){
-  if(carOn&&carIsNight&&carEye){
-    b*=0.45;
-    if(mode==='music'){r=Math.min(210,r);g=Math.min(210,g);b=Math.min(180,b);}
-  }
-  var out=[r,g,b].map(function(v){return Math.max(0,Math.min(255,Math.round(v*fadeK)));});
-  if(out[0]+out[1]+out[2]>18)setLedGlow(out[0],out[1],out[2],force);
-  if(!force&&out[0]===lastSentRGB[0]&&out[1]===lastSentRGB[1]&&out[2]===lastSentRGB[2])return;
-  lastSentRGB=out;
-  write(out,prio);
-}
-
-function sendStatic(force){var k=bright/100;setLedGlow(color[0],color[1],color[2],true);sendRGB(color[0]*k,color[1]*k,color[2]*k,force,true);}
-function touch(){if(!timerEnd)fadeK=1;}
-function hex2rgb(h){return [parseInt(h.substr(1,2),16),parseInt(h.substr(3,2),16),parseInt(h.substr(5,2),16)];}
-function hsv(h,s,v){var f=function(n){var k=(n+h/60)%6;return v*(1-s*Math.max(0,Math.min(k,4-k,1)))*255;};return [f(5),f(3),f(1)];}
-function lerp(a,b,t){return a+(b-a)*t;}
-function mixRgb(c1,c2,t){return [lerp(c1[0],c2[0],t),lerp(c1[1],c2[1],t),lerp(c1[2],c2[2],t)];}
-
-$('conn').onclick=function(){
-  if(!navigator.bluetooth){st.textContent='Открой страницу в браузере Bluefy';return;}
-  st.textContent='Поиск...';
-  navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:['0000ffe0-0000-1000-8000-00805f9b34fb']})
-  .then(function(d){
-    d.addEventListener('gattserverdisconnected',function(){ch=null;busy=false;pending=null;pendingPrio=false;lastSentRGB=[-1,-1,-1];st.textContent='Отключено';});
-    return d.gatt.connect();
-  })
-  .then(function(s){return s.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');})
-  .then(function(s){return s.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');})
+// ... existing code ... -->
   .then(function(c){
     ch=c;busy=false;pending=null;pendingPrio=false;werr=0;lastSentRGB=[-1,-1,-1];
-    $('ver').textContent='версия 30';
+    $('ver').textContent='версия 31';
     st.textContent='Подключено';
     sendStatic(true);
   })
-  .catch(function(e){st.textContent=errText(e);});
-};
-
-/* Основные вкладки и подвкладки музыки */
-document.querySelectorAll('#tabs button').forEach(function(b){
-  b.onclick=function(){
-    var target=b.getAttribute('data-t');
-    document.querySelectorAll('#tabs button').forEach(function(x){x.className=(x===b)?'sel':'alt';});
-    ['t1','t2','t3','t4','t5'].forEach(function(t){$(t).classList.toggle('hid',t!==target);});
-    if(target==='t3')drawTrackMap();
-  };
-});
-document.querySelectorAll('#mtabs button').forEach(function(b){
-  b.onclick=function(){
-    var target=b.getAttribute('data-mt');
-    document.querySelectorAll('#mtabs button').forEach(function(x){x.className=(x===b)?'sel':'alt';});
-    ['mt1','mt2','mt3'].forEach(function(t){$(t).classList.toggle('hid',t!==target);});
-  };
-});
-
-/* Цвет */
-function syncColorUI(hex){
-  var up=(hex||'#ff0000').toUpperCase();
-  $('colorHex').textContent=up;
-  document.querySelectorAll('#presets .sw').forEach(function(b){
-    b.classList.toggle('active',b.getAttribute('data-hex')===up);
-  });
-}
-function setBright(v){bright=v;$('bright').value=v;$('bv').textContent=v;}
-$('color').oninput=function(e){touch();setMode(null,true);color=hex2rgb(e.target.value);syncColorUI(e.target.value);sendStatic(true);};
-$('bright').oninput=function(e){
-  touch();
-  var v=+e.target.value;
-  setBright(v);
-  if(carOn){
-    if(carIsNight){carNightB=Math.min(60,Math.max(2,v));$('carNightB').value=carNightB;$('cnv').textContent=carNightB;saveCfg('car-nb',carNightB);}
-    else{carDayB=Math.max(10,v);$('carDayB').value=carDayB;$('cdv').textContent=carDayB;saveCfg('car-db',carDayB);}
-  }
-  if(!mode)sendStatic(true);
-};
-$('on').onclick=function(){touch();setMode(null,true);setBright(Math.max(bright,10));sendStatic(true);};
-$('off').onclick=function(){setMode(null,true);sendRGB(0,0,0,true,true);};
-['#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff','#ffffff'].forEach(function(h){
-  var b=document.createElement('button');b.className='sw';b.style.background=h;b.setAttribute('data-hex',h.toUpperCase());
-  b.onclick=function(){touch();setMode(null,true);$('color').value=h;color=hex2rgb(h);syncColorUI(h);sendStatic(true);};
-  $('presets').appendChild(b);
-});
-syncColorUI('#FF0000');
-
-/* Движок режимов */
-function setMode(m,quiet){
-  cancelAnimationFrame(raf);
-  mode=m;
-  document.querySelectorAll('[data-fx]').forEach(function(b){
-    b.className=(b.getAttribute('data-fx')===m)?'sel':'alt';
-  });
-  if(m)wakeOn();else wakeOff();
-  if(m){
-    touch();
-    if(m!=='music'&&m!=='ambient'&&audio&&!audio.paused)audio.pause();
-    lastSentRGB=[-1,-1,-1];
-    raf=requestAnimationFrame(tick);
-  }else if(!quiet){
-    setTimeout(function(){sendStatic(true);},120);
-  }
-}
-
-var lastMapDraw=0;
-function tick(t){
-  raf=requestAnimationFrame(tick);
-  if(mode==='music'){
-    var out=runMusicPipeline(t);
-    if(!out)return;
-    var minGap=out.prio?18:42;
-    if(t-lastSend<minGap)return;
-    lastSend=t;
-    var v=bright/100;
-    sendRGB(out.rgb[0]*v,out.rgb[1]*v,out.rgb[2]*v,out.prio,out.prio);
-    if(t-lastMapDraw>90){lastMapDraw=t;drawTrackMap();}
-    return;
-  }
-  var c=effectFrame(t);
-  if(!c||t-lastSend<42)return;
-  lastSend=t;
-  var vb=bright/100;
-  sendRGB(c[0]*vb,c[1]*vb,c[2]*vb,false,false);
-}
-
-/* Подложка с учётом мёртвой зоны контроллеров */
-function ambientColor(t){
-  var wave=0.08+0.05*((Math.sin(t*0.0022)+1)/2);
-  var mx=Math.max(color[0],color[1],color[2],1);
-  var k=Math.max(wave,14/mx);
-  return [color[0]*k,color[1]*k,color[2]*k];
-}
-
-/* Эффекты */
-var fl=0.5,spT=0,spH=0,spV=0,sunT0=0,sunDur=0;
-var FX=[['rainbow','Радуга'],['breath','Дыхание'],['fire','Огонь'],['ocean','Океан'],['sparkle','Искры'],['jump','Переходы RGB'],['police','Полиция'],['strobe','Стробоскоп']];
-function effectFrame(t){
-  var s=speed/5,c;
-  switch(mode){
-    case 'ambient':return ambientColor(t);
-    case 'rainbow':c=hsv((t*0.06*s)%360,1,1);break;
-    case 'breath':var b=(Math.sin(t*0.003*s)+1)/2;c=[color[0]*b,color[1]*b,color[2]*b];break;
-    case 'strobe':c=((t*s/100)%2<1)?[255,255,255]:[0,0,0];break;
-    case 'fire':fl=fl*0.7+Math.random()*0.3;c=[255*(0.4+0.6*fl),90*fl*Math.random(),0];break;
-    case 'police':c=((t*s/180)%2<1)?[255,0,0]:[0,0,255];break;
-    case 'sparkle':if(t-spT>150/s){spT=t;spH=Math.random()*360;spV=1;}spV*=0.93;c=hsv(spH,1,spV);break;
-    case 'jump':c=[[255,0,0],[0,255,0],[0,0,255]][Math.floor(t*s/600)%3];break;
-    case 'ocean':c=hsv(180+(Math.sin(t*0.0015*s)+1)*30,1,0.5+0.25*(Math.sin(t*0.004*s)+1));break;
-    case 'sunrise':
-      var p=Math.min(1,(t-sunT0)/sunDur);
-      var from=p<0.5?[255,0,0]:[255,90,0],to=p<0.5?[255,90,0]:[255,190,90],q=p<0.5?p*2:(p-0.5)*2;
-      var k=Math.max(0.02,p);
-      c=[(from[0]+(to[0]-from[0])*q)*k,(from[1]+(to[1]-from[1])*q)*k,(from[2]+(to[2]-from[2])*q)*k];break;
-    default:return null;
-  }
-  return c;
-}
-FX.forEach(function(f){
-  var b=document.createElement('button');b.className='alt';b.textContent=f[1];b.setAttribute('data-fx',f[0]);
-  b.onclick=function(){setMode(f[0]);};
-  $('fx').appendChild(b);
-});
-$('fxstop').onclick=function(){setMode(null);};
-$('speed').oninput=function(e){speed=+e.target.value;$('spv').textContent=speed;};
-
+// ... existing code ... -->
 /* =====================================================================
-   БАЗА ДАННЫХ ЖАНРОВ И ИИ-СВЕТОРЕЖИССЁР
+   БАЗА ДАННЫХ ЖАНРОВ (15 ПРОФИЛЕЙ) И ИИ-СВЕТОРЕЖИССЁР
    ===================================================================== */
 var GENRE_DB={
   phonk:{
-    name:'Фонк/Трэп',
-    kw:['phonk','фонк','drift','дрифт','trap','трэп','808','memphis','kordhell','lxst','ghostface'],
-    bpm:125,bass:0.46,mid:0.30,high:0.24,crest:3.1,
-    mul:[1.18,0.95,1.05,1.10],rel:[110,115,68,105],
-    hues:[352,276,315],snare:[255,210,245],punch:1.35,glide:260
+    name:'Фонк',
+    kw:['phonk','фонк','drift','дрифт','cowbell','memphis','kordhell','lxst','ghostface','pharm'],
+    bpm:126,bass:0.48,mid:0.28,high:0.24,crest:3.2,
+    mul:[1.20,0.94,1.06,1.12],rel:[100,110,64,98],
+    hues:[352,278,318],punch:1.38,glide:140
+  },
+  trap:{
+    name:'Трэп',
+    kw:['trap','трэп','808','atlanta','metro','travis','carti','pharaoh','big baby'],
+    bpm:140,bass:0.46,mid:0.31,high:0.23,crest:3.0,
+    mul:[1.18,1.00,1.08,1.10],rel:[110,115,65,105],
+    hues:[268,354,34],punch:1.32,glide:160
   },
   edm:{
-    name:'EDM/Хаус',
-    kw:['edm','house','хаус','techno','техно','trance','транс','club','клуб','remix','ремикс','electro','bass','dubstep','dnb','hardstyle'],
-    bpm:128,bass:0.42,mid:0.28,high:0.30,crest:2.8,
-    mul:[1.14,0.98,1.12,1.08],rel:[115,110,70,105],
-    hues:[192,318,228],snare:[235,250,255],punch:1.25,glide:280
+    name:'EDM / Клуб',
+    kw:['edm','club','клуб','festival','big room','electro','remix','ремикс','garrix','guetta','tiesto'],
+    bpm:128,bass:0.41,mid:0.29,high:0.30,crest:2.8,
+    mul:[1.14,0.98,1.14,1.08],rel:[108,108,66,102],
+    hues:[194,322,46],punch:1.28,glide:150
+  },
+  house:{
+    name:'Хаус / Дип',
+    kw:['house','хаус','deep','дип','tech house','slap','tropical','ibiza','meduza','imanbek'],
+    bpm:122,bass:0.40,mid:0.36,high:0.24,crest:2.4,
+    mul:[1.12,1.06,1.02,1.06],rel:[122,125,75,115],
+    hues:[176,26,204],punch:1.16,glide:220
+  },
+  techno:{
+    name:'Техно',
+    kw:['techno','техно','rave','рейв','acid','hardstyle','хардстайл','industrial','de witte','brejcha'],
+    bpm:136,bass:0.45,mid:0.25,high:0.30,crest:3.1,
+    mul:[1.22,0.90,1.16,1.14],rel:[92,98,58,90],
+    hues:[216,356,186],punch:1.42,glide:95
+  },
+  dnb:{
+    name:'Драм-н-Бейс',
+    kw:['dnb','drum','bass','драм','neuro','liquid','jungle','pendulum','sub focus','netsky'],
+    bpm:174,bass:0.42,mid:0.27,high:0.31,crest:3.0,
+    mul:[1.16,0.96,1.18,1.12],rel:[88,95,55,88],
+    hues:[136,192,286],punch:1.36,glide:110
+  },
+  dubstep:{
+    name:'Дабстеп',
+    kw:['dubstep','дабстеп','wobble','riddim','brostep','skrillex','excision','zeds'],
+    bpm:145,bass:0.47,mid:0.31,high:0.22,crest:3.3,
+    mul:[1.22,1.02,1.05,1.14],rel:[105,105,62,98],
+    hues:[114,274,182],punch:1.40,glide:120
   },
   hiphop:{
     name:'Хип-Хоп',
-    kw:['hip','hop','rap','рэп','хип','хоп','beat','бит','drill','дрилл','freestyle','miya','скриптонит','oxxxy'],
+    kw:['hip','hop','rap','рэп','хип','хоп','beat','бит','drill','дрилл','freestyle','скриптонит','oxxxy','basta'],
     bpm:94,bass:0.41,mid:0.39,high:0.20,crest:2.6,
-    mul:[1.12,1.14,0.98,1.06],rel:[130,135,80,115],
-    hues:[264,38,18],snare:[255,238,205],punch:1.15,glide:380
+    mul:[1.12,1.14,0.98,1.06],rel:[125,130,78,115],
+    hues:[258,36,14],punch:1.18,glide:210
   },
   pop:{
-    name:'Поп/Вокал',
-    kw:['pop','поп','vocal','вокал','dance','танц','cover','кавер','acoustic','акуст','love','radio','hit'],
-    bpm:114,bass:0.30,mid:0.46,high:0.24,crest:2.2,
-    mul:[0.95,1.20,1.04,1.05],rel:[135,145,85,120],
-    hues:[342,178,28],snare:[255,244,228],punch:0.95,glide:460
+    name:'Поп',
+    kw:['pop','поп','dance','танц','cover','кавер','radio','hit','хит','weeknd','dua','artik','zivert'],
+    bpm:116,bass:0.30,mid:0.45,high:0.25,crest:2.2,
+    mul:[0.98,1.18,1.05,1.05],rel:[128,138,80,118],
+    hues:[338,184,42],punch:1.05,glide:240
+  },
+  rnb:{
+    name:'R&B / Соул',
+    kw:['rnb','r&b','soul','соул','smooth','slow','velvet','frank','sza','jhene','jah'],
+    bpm:88,bass:0.35,mid:0.45,high:0.20,crest:2.0,
+    mul:[1.02,1.20,0.96,1.02],rel:[148,155,95,135],
+    hues:[314,28,266],punch:0.92,glide:320
   },
   rock:{
     name:'Рок',
-    kw:['rock','рок','metal','метал','punk','панк','guitar','гитар','grunge','альтер','кино','король'],
-    bpm:132,bass:0.31,mid:0.41,high:0.28,crest:2.7,
-    mul:[1.06,1.12,1.15,1.08],rel:[115,115,72,108],
-    hues:[10,44,212],snare:[255,248,232],punch:1.20,glide:300
+    kw:['rock','рок','punk','панк','guitar','гитар','grunge','альтер','кино','король','сплин','земфира','linkin'],
+    bpm:130,bass:0.31,mid:0.41,high:0.28,crest:2.7,
+    mul:[1.06,1.12,1.15,1.08],rel:[112,112,70,105],
+    hues:[12,44,214],punch:1.22,glide:160
+  },
+  metal:{
+    name:'Метал',
+    kw:['metal','метал','core','кор','thrash','death','heavy','doom','slipknot','rammstein','metallica'],
+    bpm:156,bass:0.34,mid:0.37,high:0.29,crest:3.1,
+    mul:[1.14,1.08,1.18,1.12],rel:[92,96,58,90],
+    hues:[0,210,32],punch:1.38,glide:100
   },
   synth:{
     name:'Синтвейв',
     kw:['synth','синт','wave','вейв','retro','ретро','cyber','кибер','outrun','80s','night','ночь','kavinsky'],
     bpm:108,bass:0.35,mid:0.37,high:0.28,crest:2.3,
-    mul:[1.05,1.10,1.08,1.05],rel:[140,145,88,125],
-    hues:[326,186,250],snare:[240,220,255],punch:1.00,glide:520
+    mul:[1.05,1.10,1.08,1.05],rel:[135,140,84,122],
+    hues:[326,186,252],punch:1.06,glide:260
   },
   lofi:{
     name:'Лоу-фай',
     kw:['lofi','lo-fi','лоу','chill','чилл','ambient','эмбиент','sleep','сон','piano','пиано','jazz','джаз','relax'],
     bpm:82,bass:0.32,mid:0.48,high:0.20,crest:1.9,
-    mul:[0.92,1.16,0.92,1.00],rel:[165,175,110,150],
-    hues:[32,164,344],snare:[255,232,195],punch:0.75,glide:680
+    mul:[0.94,1.16,0.92,1.00],rel:[160,170,105,145],
+    hues:[32,164,344],punch:0.84,glide:380
+  },
+  cinematic:{
+    name:'Саундтрек',
+    kw:['ost','soundtrack','саундтрек','epic','эпик','orchestra','оркестр','hans','zimmer','interstellar','score'],
+    bpm:96,bass:0.36,mid:0.42,high:0.22,crest:2.5,
+    mul:[1.08,1.15,1.02,1.06],rel:[155,165,95,140],
+    hues:[156,42,224],punch:1.08,glide:340
   }
 };
-var GENRE_KEYS=['phonk','edm','hiphop','pop','rock','synth','lofi'];
+var GENRE_KEYS=['phonk','trap','edm','house','techno','dnb','dubstep','hiphop','pop','rnb','rock','metal','synth','lofi','cinematic'];
 
 var audio=$('audio'),musicMode='auto',soloMode='all',trackGenre='auto',antiMud=true,vPalMode='auto';
 var detectedGenre='pop',fileHintGenre='',lastGenreEval=0;
@@ -581,7 +481,7 @@ var lastBandBeat=[0,0,0],bandFlash=[0,0,0],lastT=0,srcBand=0;
 var ambOn=true,ambMix=0,rawBeats=[],lastRawBeat=0;
 var beatIntervals=[],estBpm=0,beatPeriod=500,beatPhase=0,barBeat=0;
 var vocalEnv=0,snareFlash=0,lastSnare=0;
-var aiHue=342,aiTargetHue=342,aiVal=0,aiSpark=0;
+var aiHue=338,aiTargetHue=338,aiVal=0,aiSpark=0,aiKickEnv=0,aiVocalHold=0,phraseEnergy=0,buildProg=0;
 var vBaseHue=352,vVocalHue=188,vTargetBase=352,vTargetVocal=188,vSpark=0,lastPalShift=0;
 var shortEnergy=0,longEnergy=0,dropBoost=0,lastTeleT=0;
 var styleStats={bass:0,mid:0,high:0,crest:0};
@@ -639,13 +539,16 @@ function resetAudioStats(){
   sm=[0,0,0,0];prevLin=[0,0,0,0];fluxAvg=[0.02,0.02,0.02,0.02];
   mudFloor=[0,0,0];mudCut=0;lastMudHit=0;
   bandFlash=[0,0,0];flash=0;lastT=0;
-  vocalEnv=0;snareFlash=0;lastSnare=0;vSpark=0;aiSpark=0;aiVal=0;
+  vocalEnv=0;snareFlash=0;lastSnare=0;vSpark=0;
+  aiSpark=0;aiVal=0;aiKickEnv=0;aiVocalHold=0;phraseEnergy=0;buildProg=0;
   rawBeats=[];beatIntervals=[];estBpm=0;beatPeriod=500;beatPhase=0;barBeat=0;lastRawBeat=0;
   shortEnergy=0;longEnergy=0;dropBoost=0;
   styleStats={bass:0,mid:0,high:0,crest:0};
   lastGenreEval=0;
   if(activeMap&&activeMap.genre)detectedGenre=activeMap.genre;
   else if(fileHintGenre)detectedGenre=fileHintGenre;
+  var initG=getActiveGenre();
+  aiHue=initG.hues[0];aiTargetHue=initG.hues[0];
   clearMeterUI();
 }
 
@@ -780,16 +683,16 @@ function runAnalyzer(t,dt){
   var raw=[rawBass,rawMid,rawHigh,rawAll];
   var dbs=[bRes.db,mRes.db,hRes.db];
 
-  var stAlpha=1-Math.exp(-dt/2200);
-  styleStats.bass=styleStats.bass*(1-stAlpha)+rawBass*stAlpha;
-  styleStats.mid=styleStats.mid*(1-stAlpha)+rawMid*stAlpha;
-  styleStats.high=styleStats.high*(1-stAlpha)+rawHigh*stAlpha;
+  var stAlpha=1-Math.exp(-dt/2000);
+  styleStats.bass=styleStats.bass*(1-stAlpha)+bRes.v*stAlpha;
+  styleStats.mid=styleStats.mid*(1-stAlpha)+(mRes.v*1.55)*stAlpha;
+  styleStats.high=styleStats.high*(1-stAlpha)+(hRes.v*2.15)*stAlpha;
   styleStats.crest=styleStats.crest*(1-stAlpha)+crest*stAlpha;
 
-  if(trackGenre==='auto'&&t-lastGenreEval>1600){
+  if(trackGenre==='auto'&&t-lastGenreEval>1500){
     lastGenreEval=t;
     var sumSpec=styleStats.bass+styleStats.mid+styleStats.high;
-    if(sumSpec>0.04){
+    if(sumSpec>0.03){
       var bR=styleStats.bass/sumSpec;
       var mR=styleStats.mid/sumSpec;
       var hR=styleStats.high/sumSpec;
@@ -916,6 +819,11 @@ function runAnalyzer(t,dt){
 }
 
 /* --- СЛОЙ 2: ИИ-РЕЖИССЁР И УНИКАЛЬНАЯ ФИЗИКА 7 РЕЖИМОВ --- */
+function shortHueLerp(a,b,t){
+  var d=((b-a+540)%360)-180;
+  return (a+d*t+360)%360;
+}
+
 function updateVirtuosoPalette(sig,t,dt){
   var pair=VIRTUOSO_PALETTES[0];
   if(vPalMode!=='auto'){
@@ -944,67 +852,83 @@ function updateVirtuosoPalette(sig,t,dt){
 function runAiDirector(sig,t,dt){
   var g=sig.genre,led=sig.led,lvl=sig.lvl,flux=sig.flux;
   var ms=sig.mapState;
-  var isDrop=(ms===3||dropBoost>0.12);
-  var isBuild=(ms===2);
-  var isBreak=(ms===0||sig.curE<0.16);
 
-  var baseH=g.hues[0],vocH=g.hues[1],accH=g.hues[2];
-  var barHalf=Math.floor(sig.barBeat/4);
-  var tempShift=(led[2]-led[0])*22;
+  /* Плавная энергия музыкальной фразы (1.4 сек), чтобы паузы между ударами не считались ямой */
+  phraseEnergy+=(sig.curE-phraseEnergy)*(1-Math.exp(-dt/1400));
 
-  if(isBreak){
-    var wave=(Math.sin(t*0.0018)+1)/2;
-    aiTargetHue=(vocH+(accH-vocH)*wave+360)%360;
-  }else if(isBuild){
-    aiTargetHue=(vocH+(accH-vocH)*Math.min(1,0.35+sig.beatPhase*0.5)+360)%360;
-  }else if(isDrop){
-    aiTargetHue=(sig.barBeat%2===0)?baseH:accH;
+  var isBreak=(ms===0||phraseEnergy<0.13);
+  var isDrop=!isBreak&&(ms===3||(dropBoost>0.11&&phraseEnergy>0.42));
+  var isBuild=!isBreak&&!isDrop&&(ms===2);
+
+  /* Огибающая удара бочки и удержание вокальной фразы без дёргания на каждом слоге */
+  if(sig.isBeat){
+    aiKickEnv=Math.min(1,0.58+led[0]*0.42+sig.transient*0.24);
   }else{
-    var vWeight=Math.max(0,Math.min(1,sig.vocalEnv*1.35-led[0]*0.3));
-    var hSpan=((vocH-baseH+540)%360)-180;
-    aiTargetHue=(baseH+hSpan*vWeight+(barHalf?12:-12)+tempShift+360)%360;
+    aiKickEnv*=Math.exp(-dt/Math.max(85,g.rel[0]));
   }
 
-  if(soloMode==='kick')aiTargetHue=baseH;
-  else if(soloMode==='vocal'||soloMode==='melody')aiTargetHue=vocH;
+  var vHoldRate=sig.vocalEnv>aiVocalHold?140:340;
+  aiVocalHold+=(sig.vocalEnv-aiVocalHold)*(1-Math.exp(-dt/vHoldRate));
 
-  var hDiff=((aiTargetHue-aiHue+540)%360)-180;
-  var glideMs=isDrop?110:(isBreak?650:g.glide);
-  aiHue=(aiHue+hDiff*(1-Math.exp(-dt/glideMs))+360)%360;
+  var baseH=g.hues[0],vocH=g.hues[1],accH=g.hues[2];
+  var vocalActive=(soloMode==='vocal'||soloMode==='melody')||(soloMode!=='kick'&&aiVocalHold>0.23&&aiVocalHold>led[0]*0.86);
+
+  if(isBreak){
+    buildProg=0;
+    var wave=(Math.sin(t*0.0016)+1)/2;
+    aiTargetHue=shortHueLerp(vocH,accH,wave);
+  }else if(isBuild){
+    buildProg=Math.min(1,buildProg+dt/3800);
+    aiTargetHue=shortHueLerp(vocH,accH,buildProg);
+  }else if(isDrop){
+    buildProg=0;
+    if(vocalActive&&sig.barBeat%4>=2)aiTargetHue=vocH;
+    else aiTargetHue=(Math.floor(sig.barBeat/2)%2===0)?baseH:accH;
+  }else{
+    buildProg=0;
+    aiTargetHue=vocalActive?vocH:baseH;
+  }
+
+  /* Кратчайший переход по цветовому кругу без грязных промежуточных оттенков */
+  var glideMs=isBreak?650:(isDrop?85:g.glide);
+  aiHue=shortHueLerp(aiHue,aiTargetHue,1-Math.exp(-dt/glideMs));
 
   var targetVal=0;
   if(isBreak){
-    targetVal=0.14+0.34*Math.max(sig.vocalEnv,led[0]*0.7);
+    targetVal=0.14+0.36*Math.max(aiVocalHold,phraseEnergy);
   }else if(isBuild){
-    var ramp=0.25+0.75*Math.max(sig.groovePulse,sig.vocalEnv);
-    targetVal=Math.min(1,ramp);
+    var rampFloor=0.18+0.54*buildProg;
+    var rampHit=Math.max(aiKickEnv,sig.groovePulse*(0.45+0.55*buildProg));
+    targetVal=Math.min(1,rampFloor+(1-rampFloor)*rampHit);
   }else if(isDrop){
-    var dropHit=Math.max(led[0]*(0.45+0.55*sig.groovePulse),sig.vocalEnv*0.85);
-    targetVal=Math.min(1,(0.06+0.94*dropHit)*g.punch);
+    var dropHit=Math.max(aiKickEnv*g.punch,aiVocalHold*0.72);
+    targetVal=Math.min(1,0.05+0.95*dropHit);
   }else{
-    var verseHit=Math.max(led[0]*0.85,sig.vocalEnv*0.92,led[2]*0.45);
-    targetVal=Math.min(1,(0.04+0.96*verseHit)*(0.85+g.punch*0.15));
+    var verseDrive=vocalActive?Math.max(aiVocalHold*0.92,aiKickEnv*0.82):Math.max(aiKickEnv*g.punch,led[2]*0.32);
+    targetVal=Math.min(1,0.05+0.95*verseDrive);
   }
 
-  if(mudCut>0&&!isBreak)targetVal*=0.38;
-  var vRate=targetVal>aiVal?14:g.rel[3];
+  if(mudCut>0&&!isBreak)targetVal*=0.32;
+  var vRate=targetVal>aiVal?12:Math.max(85,g.rel[3]);
   aiVal+=(targetVal-aiVal)*(1-Math.exp(-dt/vRate));
 
-  var sat=isDrop?1.0:(isBreak?0.84:0.94);
-  var outRgb=hsv(aiHue,sat,Math.min(1,aiVal));
+  var outRgb=hsv(aiHue,isBreak?0.86:1.0,Math.min(1,aiVal));
 
-  if(sig.snareFlash>0.14&&soloMode!=='kick'&&!isBreak){
-    var snMix=sig.snareFlash*(isDrop?0.65:0.42);
-    outRgb=mixRgb(outRgb,g.snare,snMix);
+  /* Снэр окрашивается в акцентный цвет жанра, а не размывает ленту в белый */
+  if(sig.snareFlash>0.16&&soloMode!=='kick'&&!isBreak){
+    var snCol=hsv(accH,0.82,1);
+    var snMix=sig.snareFlash*(isDrop?0.68:0.48);
+    outRgb=mixRgb(outRgb,snCol,snMix);
   }
 
-  if(flux[2]>0.062&&lvl[2]>0.22){
-    aiSpark=Math.min(1,aiSpark+flux[2]*(isDrop?1.6:1.0));
+  /* Лёгкие искры на тарелках только на энергичных моментах */
+  if(flux[2]>0.068&&lvl[2]>0.26&&phraseEnergy>0.32){
+    aiSpark=Math.min(1,aiSpark+flux[2]*(isDrop?1.35:0.85));
   }
-  aiSpark*=Math.exp(-dt/75);
-  if(aiSpark>0.08){
-    var sp=aiSpark*(isDrop?110:65);
-    outRgb=[Math.min(255,outRgb[0]+sp*0.8),Math.min(255,outRgb[1]+sp*0.9),Math.min(255,outRgb[2]+sp)];
+  aiSpark*=Math.exp(-dt/68);
+  if(aiSpark>0.10){
+    var sp=aiSpark*(isDrop?78:45);
+    outRgb=[Math.min(255,outRgb[0]+sp*0.85),Math.min(255,outRgb[1]+sp*0.92),Math.min(255,outRgb[2]+sp)];
   }
 
   return {rgb:outRgb,prio:sig.isBeat||sig.isSnare,allowAmb:true};
@@ -1192,37 +1116,72 @@ function preAnalyzeTrack(trackObj,preloadedAb){
   }).then(function(buf){
     var ch0=buf.getChannelData(0);
     var ch1=buf.numberOfChannels>1?buf.getChannelData(1):null;
+    var sr=buf.sampleRate||22050;
     var N=120,len=ch0.length,step=Math.max(1,Math.floor(len/N));
-    var rms=[],bass=[],i,j,s,lp=0,hpPrev=0,sumSq,bSq,hSq,peakAll=0,rmsAll=0,bAll=0,hAll=0,cnt;
+    var aLp=Math.min(0.35,(2*Math.PI*130)/sr);
+    var aMid=Math.min(0.65,(2*Math.PI*2200)/sr);
+    var rms=[],bass=[],i,j,s,lp1=0,lp2=0,midLp=0,sumSq,bSq,mSq,hSq,peakAll=0,rmsAll=0,bAll=0,mAll=0,hAll=0,cnt;
     for(i=0;i<N;i++){
-      sumSq=0;bSq=0;hSq=0;cnt=0;
+      sumSq=0;bSq=0;mSq=0;hSq=0;cnt=0;
       var end=Math.min(len,(i+1)*step);
       for(j=i*step;j<end;j+=2){
         s=ch1?(ch0[j]+ch1[j])*0.5:ch0[j];
         var aS=Math.abs(s);
         if(aS>peakAll)peakAll=aS;
-        lp+=0.08*(s-lp);
-        var hp=s-hpPrev;hpPrev=s;
+        lp1+=aLp*(s-lp1);
+        lp2+=aLp*(lp1-lp2);
+        midLp+=aMid*(s-midLp);
+        var mBand=midLp-lp2;
+        var hBand=s-midLp;
         sumSq+=s*s;
-        bSq+=lp*lp;
-        hSq+=hp*hp;
+        bSq+=lp2*lp2;
+        mSq+=mBand*mBand;
+        hSq+=hBand*hBand;
         cnt++;
       }
       var rSeg=Math.sqrt(sumSq/Math.max(1,cnt));
       var bSeg=Math.sqrt(bSq/Math.max(1,cnt));
+      var mSeg=Math.sqrt(mSq/Math.max(1,cnt));
       var hSeg=Math.sqrt(hSq/Math.max(1,cnt));
       rms.push(rSeg);
       bass.push(bSeg);
-      rmsAll+=rSeg;bAll+=bSeg;hAll+=hSeg;
+      rmsAll+=rSeg;bAll+=bSeg;mAll+=mSeg;hAll+=hSeg;
     }
+
+    /* Оценка BPM по пикам энергии на отрезке до 45 секунд */
+    var envStep=Math.max(1,Math.floor(sr*0.02));
+    var maxSamples=Math.min(len,Math.floor(sr*45));
+    var envArr=[],eSum,eCnt,k,m;
+    for(k=0;k<maxSamples;k+=envStep){
+      eSum=0;eCnt=0;
+      for(m=k;m<Math.min(maxSamples,k+envStep);m+=2){
+        var sv=ch1?(ch0[m]+ch1[m])*0.5:ch0[m];
+        eSum+=sv*sv;eCnt++;
+      }
+      envArr.push(Math.sqrt(eSum/Math.max(1,eCnt)));
+    }
+    var bpmEst=0,bestCorr=0;
+    for(var candBpm=76;candBpm<=180;candBpm+=2){
+      var lag=Math.round((60/candBpm)/0.02);
+      if(lag<4||lag>=envArr.length/2)continue;
+      var corr=0,nPairs=0;
+      for(k=lag;k<envArr.length;k++){
+        var d1=Math.max(0,envArr[k]-envArr[k-1]);
+        var d2=Math.max(0,envArr[k-lag]-envArr[k-lag-1]);
+        corr+=d1*d2;nPairs++;
+      }
+      corr/=Math.max(1,nPairs);
+      if(corr>bestCorr){bestCorr=corr;bpmEst=candBpm;}
+    }
+
+    var bNorm=bAll/N;
+    var mNorm=(mAll/N)*1.35;
+    var hNorm=(hAll/N)*1.95;
+    var sumSpec=Math.max(0.0001,bNorm+mNorm+hNorm);
     var avgRms=Math.max(0.001,rmsAll/N);
-    var bRatio=Math.min(1,(bAll/N)/avgRms);
-    var hRatio=Math.min(1,(hAll/N)/(avgRms*1.2));
-    var mRatio=Math.max(0.1,1-bRatio*0.5-hRatio*0.5);
-    var sumRat=bRatio+mRatio+hRatio;
-    var crestEst=Math.min(4.2,Math.max(1.6,peakAll/avgRms*0.65));
+    var crestEst=Math.min(4.2,Math.max(1.6,(peakAll/avgRms)*0.62));
     var hint=detectFileHint(trackObj.name);
-    var gKey=classifyGenreByFeatures(bRatio/sumRat,mRatio/sumRat,hRatio/sumRat,crestEst,0,hint);
+    var gKey=classifyGenreByFeatures(bNorm/sumSpec,mNorm/sumSpec,hNorm/sumSpec,crestEst,bpmEst,hint);
 
     var sRms=rms.slice().sort(function(a,b){return a-b;});
     var sBass=bass.slice().sort(function(a,b){return a-b;});
@@ -1244,7 +1203,10 @@ function preAnalyzeTrack(trackObj,preloadedAb){
     if(cur>=0&&tracks[cur]&&tracks[cur].id===trackObj.id){
       activeMap=mapData;
       if(trackGenre==='auto')detectedGenre=gKey;
+      var gObj=getActiveGenre();
+      aiHue=gObj.hues[0];aiTargetHue=gObj.hues[0];
       drawTrackMap();
+      renderLib();
     }
     saveTrackMeta(trackObj);
     finishScan();
