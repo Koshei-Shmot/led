@@ -44,9 +44,10 @@ input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var
 .subtabs button{padding:8px 2px;font-size:12px;border-radius:9px;border:0}
 .bars{display:flex;gap:8px;height:44px;align-items:flex-end;margin-top:8px}
 .bars div{flex:1;border-radius:6px;height:2px;box-shadow:0 0 10px currentColor}
-.blbls{display:flex;gap:8px;margin-top:4px;text-align:center;font-size:11px;color:var(--muted)}
-.blbls span{flex:1}
-.tele{margin-top:8px;padding:7px 10px;border-radius:11px;background:var(--btn);border:1px solid var(--line);font-size:12px;color:var(--muted);text-align:center}
+.blbls{display:flex;gap:6px;margin-top:6px;text-align:center;font-size:11px;line-height:1.35;color:var(--muted)}
+.blbls span{flex:1;background:var(--btn);border:1px solid var(--line);border-radius:8px;padding:4px 2px}
+.blbls b{display:block;color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;margin-top:1px}
+.tele{margin-top:8px;padding:7px 10px;border-radius:11px;background:var(--btn);border:1px solid var(--line);font-size:12px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
 #status::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#777;margin-right:8px}
 #status.ok::before{background:#34d399;box-shadow:0 0 8px #34d399}
 .hid{display:none}
@@ -57,7 +58,8 @@ input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var
 <div class="card">
 <button id="conn">Подключиться</button>
 <div id="status">Не подключено</div>
-<div id="ver" style="text-align:center;color:var(--muted);font-size:12px;margin-top:6px">версия 20</div>
+<div id="ver" style="text-align:center;color:var(--muted);font-size:12px;margin-top:6px">версия 22</div>
+</div>
 </div>
 <div class="tabs" id="tabs">
 <button data-t="t1" class="sel">Цвет</button>
@@ -85,7 +87,7 @@ input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var
 </div>
 
 <div id="t3" class="card hid">
-<audio id="audio" controls playsinline></audio>
+<audio id="audio" controls playsinline preload="auto"></audio>
 <canvas id="tmap" height="34"></canvas>
 <div class="pads">
 <button class="alt" id="padBuild">Разгон</button>
@@ -94,7 +96,11 @@ input[type=time]{width:100%;padding:10px;border-radius:12px;border:1px solid var
 </div>
 <div class="tele" id="tele">Ожидание трека</div>
 <div class="bars"><div id="b1" style="background:#f33"></div><div id="b2" style="background:#3c3"></div><div id="b3" style="background:#38f"></div></div>
-<div class="blbls"><span>Бас</span><span>Голос</span><span>Верх</span></div>
+<div class="blbls">
+<span>Бас (30-118 Гц)<b id="db1">-- дБ · 0%</b></span>
+<span>Голос/СЧ (0.3-2.3 кГц)<b id="db2">-- дБ · 0%</b></span>
+<span>Верх (3.6-13.5 кГц)<b id="db3">-- дБ · 0%</b></span>
+</div>
 
 <div class="subtabs" id="mtabs">
 <button data-mt="mt1" class="sel">Плейлист</button>
@@ -235,7 +241,7 @@ function write(p,prio){
   }
   busy=true;
   ch.writeValueWithoutResponse(new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]))
-  .catch(function(){werr++;$('ver').textContent='версия 20, ошибок записи: '+werr;})
+  .catch(function(){werr++;$('ver').textContent='версия 22, ошибок записи: '+werr;})
   .then(function(){
     busy=false;
     if(pending){
@@ -274,7 +280,7 @@ $('conn').onclick=function(){
   .then(function(s){return s.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');})
   .then(function(c){
     ch=c;busy=false;pending=null;pendingPrio=false;werr=0;lastSentRGB=[-1,-1,-1];
-    $('ver').textContent='версия 20';
+    $('ver').textContent='версия 22';
     st.textContent='Подключено';
     sendStatic(true);
   })
@@ -397,7 +403,7 @@ $('fxstop').onclick=function(){setMode(null);};
 $('speed').oninput=function(e){speed=+e.target.value;};
 
 /* =====================================================================
-   ЕДИНЫЙ ДВИЖОК СВЕТОМУЗЫКИ: АНАЛИЗАТОР -> РЕЖИССЁР -> ПАЛИТРА (v19)
+   ЕДИНЫЙ ДВИЖОК СВЕТОМУЗЫКИ: АНАЛИЗАТОР -> РЕЖИССЁР -> ПАЛИТРА (v21)
    ===================================================================== */
 var audio=$('audio'),musicMode='auto',soloMode='all',trackProfile='auto',antiMud=true;
 var actx=null,anFile=null,dly=null,freqFloat=null,timeFloat=null;
@@ -411,6 +417,13 @@ var styleStats={bass:0,mid:0,high:0,crest:0};
 var activeMap=null,scanBusy=false;
 var pads={build:false,flash:false,drop:false,buildAmt:0,flashAmt:0};
 
+function clearMeterUI(){
+  for(var i=1;i<=3;i++){
+    $('b'+i).style.height='2px';
+    $('db'+i).textContent='-- дБ · 0%';
+  }
+}
+
 function resetAudioStats(){
   envPeak=[0.14,0.11,0.09,0.14];
   sm=[0,0,0,0];prevLin=[0,0,0,0];fluxAvg=[0.02,0.02,0.02,0.02];
@@ -419,6 +432,7 @@ function resetAudioStats(){
   rawBeats=[];beatIntervals=[];estBpm=0;
   shortEnergy=0;longEnergy=0;dropBoost=0;
   styleStats={bass:0,mid:0,high:0,crest:0};
+  clearMeterUI();
 }
 
 function initAudio(){
@@ -446,10 +460,12 @@ function dbToLin(db){return db<=-88?0:(db>=0?1:Math.exp(db*0.11512925465));}
 function analyzeBand(a,b,topCount,peakWeight,subBoost){
   if(b<=a)b=a+1;
   if(b>freqFloat.length)b=freqFloat.length;
-  var sumSq=0,count=b-a,top=[],i,j,v,e,w;
+  var sumSq=0,count=b-a,top=[],i,j,db,v,e,w,maxDb=-100;
   var midBin=a+Math.floor(count*0.45);
   for(i=a;i<b;i++){
-    v=dbToLin(freqFloat[i]);
+    db=freqFloat[i];
+    if(db>maxDb)maxDb=db;
+    v=dbToLin(db);
     if(subBoost&&i<=midBin)v*=subBoost;
     e=v*v;
     sumSq+=e;
@@ -468,7 +484,7 @@ function analyzeBand(a,b,topCount,peakWeight,subBoost){
     for(i=0;i<top.length;i++)ts+=top[i];
     topAvg=Math.sqrt(ts/top.length);
   }
-  return rms*(1-peakWeight)+topAvg*peakWeight;
+  return {v:rms*(1-peakWeight)+topAvg*peakWeight,db:maxDb};
 }
 
 function detectPitchHue(binHz){
@@ -541,15 +557,20 @@ function runAnalyzer(t,dt){
   var h0=Math.max(m1+4,Math.round(3600/binHz));
   var h1=Math.min(freqFloat.length,Math.max(h0+4,Math.round(13500/binHz)));
 
-  var subBass=analyzeBand(b0,bSub,1,0.50,1.35);
-  var rawBass=analyzeBand(b0,b1,2,0.52,1.25)+transientKick*0.04;
-  var rawMid=analyzeBand(m0,m1,6,0.80,1.15)*2.35;
-  var rawHigh=analyzeBand(h0,h1,6,0.72,1.0)*3.40;
+  var subBass=analyzeBand(b0,bSub,1,0.50,1.35).v;
+  var bRes=analyzeBand(b0,b1,2,0.52,1.25);
+  var mRes=analyzeBand(m0,m1,6,0.80,1.15);
+  var hRes=analyzeBand(h0,h1,6,0.72,1.0);
+
+  var rawBass=bRes.v+transientKick*0.04;
+  var rawMid=mRes.v*2.35;
+  var rawHigh=hRes.v*3.40;
 
   if(rawMid>0.03&&subBass<rawMid*0.18&&transientKick<0.15)rawBass*=0.26;
 
   var rawAll=Math.max(rawBass,rawMid,rawHigh);
   var raw=[rawBass,rawMid,rawHigh,rawAll];
+  var dbs=[bRes.db,mRes.db,hRes.db];
 
   var stAlpha=1-Math.exp(-dt/2400);
   styleStats.bass=styleStats.bass*(1-stAlpha)+rawBass*stAlpha;
@@ -653,7 +674,7 @@ function runAnalyzer(t,dt){
   }
 
   return {
-    lvl:lvl,led:led,flux:flux,transient:transientKick,
+    lvl:lvl,led:led,flux:flux,dbs:dbs,transient:transientKick,
     binHz:binHz,curE:curE,isBeat:isBeat,mapState:mapSt,prof:prof
   };
 }
@@ -823,6 +844,8 @@ function runPalette(dirOut,sig,t,dt){
   return {rgb:rgb,prio:dirOut.prio};
 }
 
+function fmtDb(db){return db<=-85?'-- дБ':(Math.round(db)+' дБ');}
+
 function runMusicPipeline(t){
   var dt=Math.min(100,Math.max(1,t-(lastT||t)));
   lastT=t;
@@ -831,18 +854,20 @@ function runMusicPipeline(t){
 
   for(var i=0;i<3;i++)$('b'+(i+1)).style.height=(2+sig.led[i]*42)+'px';
 
-  if(t-lastTeleT>240){
+  if(t-lastTeleT>140){
     lastTeleT=t;
-    var dom='Тишина';
-    if(sig.curE>=0.08){
-      if(sig.led[0]>=sig.led[1]&&sig.led[0]>=sig.led[2])dom='Бас';
-      else if(sig.led[1]>=sig.led[0]&&sig.led[1]>=sig.led[2])dom='Голос';
-      else dom='Верх';
+    for(var j=0;j<3;j++){
+      $('db'+(j+1)).textContent=fmtDb(sig.dbs[j])+' · '+Math.round(sig.led[j]*100)+'%';
     }
+    var domIdx=0;
+    if(sig.led[1]>=sig.led[0]&&sig.led[1]>=sig.led[2])domIdx=1;
+    else if(sig.led[2]>=sig.led[0]&&sig.led[2]>=sig.led[1])domIdx=2;
+    var domNames=['Бас','Голос/СЧ','Верх'];
+    var domTxt=(sig.curE<0.08)?'Тишина':(domNames[domIdx]+' ('+fmtDb(sig.dbs[domIdx])+')');
     var bpmTxt=estBpm?(estBpm+' BPM · '):'';
     var scTxt=(sig.mapState>=0)?(' · '+sceneLabel(sig.mapState)):'';
     var pTxt=scanBusy?' · Анализ трека...':scTxt;
-    $('tele').textContent=bpmTxt+profileLabel(sig.prof)+' · '+dom+pTxt;
+    $('tele').textContent=bpmTxt+profileLabel(sig.prof)+' · '+domTxt+pTxt;
   }
 
   var dirOut=runDirector(sig,t,dt);
@@ -857,10 +882,11 @@ function readBlobBuffer(blob){
   return new Response(blob).arrayBuffer();
 }
 
-function preAnalyzeTrack(trackObj){
-  if(!trackObj||!trackObj.blob||scanBusy)return;
+function preAnalyzeTrack(trackObj,preloadedAb){
+  if(!trackObj||(!trackObj.blob&&!preloadedAb)||scanBusy)return;
   scanBusy=true;
-  readBlobBuffer(trackObj.blob).then(function(ab){
+  var bufPromise=preloadedAb?Promise.resolve(preloadedAb):readBlobBuffer(trackObj.blob);
+  bufPromise.then(function(ab){
     var OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
     var ctx=OAC?new OAC(1,1,22050):(actx||new (window.AudioContext||window.webkitAudioContext)());
     return ctx.decodeAudioData(ab);
@@ -868,7 +894,7 @@ function preAnalyzeTrack(trackObj){
     var ch0=buf.getChannelData(0);
     var ch1=buf.numberOfChannels>1?buf.getChannelData(1):null;
     var N=120,len=ch0.length,step=Math.max(1,Math.floor(len/N));
-    var rms=[],bass=[],i,j,s,lp=0,sumSq,bSq,cnt,idx;
+    var rms=[],bass=[],i,j,s,lp=0,sumSq,bSq,cnt;
     for(i=0;i<N;i++){
       sumSq=0;bSq=0;cnt=0;
       var end=Math.min(len,(i+1)*step);
@@ -1049,6 +1075,7 @@ function attachAudio(){
   audio.addEventListener('play',onPlay);
   audio.addEventListener('pause',function(){
     if(recreating)return;
+    clearMeterUI();
     $('tele').textContent='Пауза';
     if(mode==='music'){
       if(ambOn&&lightOn&&!audio.ended)setMode('ambient');
@@ -1056,6 +1083,13 @@ function attachAudio(){
     }
   });
   audio.addEventListener('ended',function(){
+    if(audio.duration&&isFinite(audio.duration)&&audio.duration>15&&audio.currentTime<audio.duration-2.5){
+      var resumeAt=audio.currentTime;
+      try{audio.currentTime=resumeAt;}catch(e){}
+      audio.play().catch(function(){});
+      return;
+    }
+    clearMeterUI();
     if(mode==='music'||mode==='ambient'){
       if(ambOn&&lightOn)setMode('ambient');
       else setMode(null);
@@ -1068,7 +1102,7 @@ function recreateAudio(){
   recreating=true;
   old.pause();
   var a=document.createElement('audio');
-  a.controls=true;a.setAttribute('playsinline','');
+  a.controls=true;a.preload='auto';a.setAttribute('playsinline','');
   old.parentNode.replaceChild(a,old);
   audio=a;anFile=null;dly=null;
   recreating=false;
@@ -1213,15 +1247,38 @@ function setMeta(name){
     navigator.mediaSession.setActionHandler('previoustrack',function(){nextTrack(-1);});
   }catch(e){}
 }
-function playBlob(b,name){
+function guessAudioMime(name){
+  var ext=(name||'').split('.').pop().toLowerCase();
+  if(ext==='m4a'||ext==='mp4'||ext==='aac')return 'audio/mp4';
+  if(ext==='wav')return 'audio/wav';
+  if(ext==='ogg'||ext==='opus')return 'audio/ogg';
+  if(ext==='flac')return 'audio/flac';
+  return 'audio/mpeg';
+}
+var playSeq=0;
+function playBlob(b,name,onBuf){
+  var seq=++playSeq;
   nowName=name||'';
   resetAudioStats();
-  if(curBlobUrl)URL.revokeObjectURL(curBlobUrl);
-  curBlobUrl=URL.createObjectURL(b);
-  audio.src=curBlobUrl;
-  audio.play().catch(function(){});
   setMeta(nowName);
   drawTrackMap();
+  readBlobBuffer(b).then(function(ab){
+    if(seq!==playSeq)return;
+    var mime=(b&&b.type)?b.type:guessAudioMime(name);
+    var memBlob=new Blob([ab],{type:mime});
+    if(curBlobUrl)URL.revokeObjectURL(curBlobUrl);
+    curBlobUrl=URL.createObjectURL(memBlob);
+    audio.preload='auto';
+    audio.src=curBlobUrl;
+    audio.play().catch(function(){});
+    if(onBuf)onBuf(ab.slice(0));
+  }).catch(function(){
+    if(seq!==playSeq)return;
+    if(curBlobUrl)URL.revokeObjectURL(curBlobUrl);
+    curBlobUrl=URL.createObjectURL(b);
+    audio.src=curBlobUrl;
+    audio.play().catch(function(){});
+  });
 }
 function playIndex(i){
   if(i<0||i>=tracks.length)return;
@@ -1234,9 +1291,8 @@ function playIndex(i){
     if(typeof tr.cfg.mud==='number')setAntiMud(tr.cfg.mud===1,true);
   }
   activeMap=tr.map||null;
-  playBlob(tr.blob,tr.name);
+  playBlob(tr.blob,tr.name,tr.map?null:function(ab){preAnalyzeTrack(tr,ab);});
   renderLib();
-  if(!tr.map)preAnalyzeTrack(tr);
 }
 function nextTrack(dir,auto){
   if(!tracks.length)return;
