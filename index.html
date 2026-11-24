@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="theme-color" content="#0b0b14">
+<meta name="theme-color" id="metaTheme" content="#07070b">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>LED лента</title>
 <style>
@@ -11,7 +11,7 @@
   --bg:#07070b;--bg2:#101018;--card:rgba(20,20,30,.78);--card2:rgba(255,255,255,.04);
   --line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
   --text:#f5f5f9;--muted:#88889d;--btn:rgba(255,255,255,.06);
-  --pill:#f5f5f9;--pill-t:#09090e;--led:255,0,0;
+  --pill:#f5f5f9;--pill-t:#09090e;--accent:#22d3ee;--led:255,0,0;
   color-scheme:dark;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)
 }
@@ -19,7 +19,7 @@
   --bg:#f4f5f8;--bg2:#e8eaf0;--card:rgba(255,255,255,.88);--card2:rgba(0,0,0,.03);
   --line:rgba(15,15,25,.08);--line2:rgba(15,15,25,.14);
   --text:#111118;--muted:#6e6e82;--btn:rgba(15,15,25,.05);
-  --pill:#111118;--pill-t:#ffffff;
+  --pill:#111118;--pill-t:#ffffff;--accent:#0284c7;
   color-scheme:light
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
@@ -103,6 +103,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 .trk{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 6px;border-bottom:1px solid var(--line)}
 .trk:last-child{border-bottom:0}
 .trk span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:500;cursor:pointer}
+.trk.active span{color:var(--accent);font-weight:700}
 .trk small{color:var(--muted);font-size:11px;flex-shrink:0;padding:2px 6px;border-radius:6px;background:var(--card2)}
 .trk b{color:var(--muted);padding:3px 7px;font-size:11px;font-weight:600;flex-shrink:0;border-radius:7px;background:var(--btn);cursor:pointer}
 #lib{max-height:210px;overflow-y:auto;margin-top:8px}
@@ -111,7 +112,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 .pads button{padding:11px 4px;font-size:12px;border-radius:12px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .subtabs{display:flex;gap:4px;margin:12px 0 8px;padding:3px;background:var(--card2);border:1px solid var(--line);border-radius:12px}
 .subtabs button{padding:8px 2px;font-size:11px;border-radius:9px;border:0;box-shadow:none}
-.bars{display:flex;gap:8px;height:40px;align-items:flex-end;margin-top:8px;padding:0 2px}
+.bars{display:flex;gap:8px;height:44px;align-items:flex-end;margin-top:8px;padding:0 2px}
 .bars div{flex:1;border-radius:5px 5px 2px 2px;height:2px;transition:height .05s linear}
 .blbls{display:flex;gap:6px;margin-top:6px;text-align:center;font-size:10px;line-height:1.35;color:var(--muted)}
 .blbls span{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:5px 2px}
@@ -122,7 +123,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 </head>
 <body>
 <div class="top">
-  <div class="brand"><h1>LED лента</h1><span id="ver">версия 25</span></div>
+  <div class="brand"><h1>LED лента</h1><span id="ver">версия 30</span></div>
   <button id="theme" class="alt ic">День</button>
 </div>
 <div class="card conn-card">
@@ -222,7 +223,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 </div>
 
 <button class="sel" id="mud" style="margin-top:10px">Анти-каша: вкл</button>
-<label>Вырезает микро-паузы темноты в плотных треках, чтобы бас не сливался</label>
+<label style="text-transform:none;letter-spacing:0;font-weight:500">Вырезает микро-паузы темноты в плотных треках, чтобы бас не сливался</label>
 
 <div id="bandBox" style="opacity:.45;transition:opacity .2s">
 <label>Полоса для Пульса, Бита и Радуги:</label>
@@ -237,7 +238,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 
 <div id="mt3" class="hid">
 <button class="sel" id="lt" style="margin-top:8px">Свет под музыку: вкл</button>
-<label>Выкл = фоновый плеер при заблокированном экране, но без света</label>
+<label style="text-transform:none;letter-spacing:0;font-weight:500">Выкл = фоновый плеер при заблокированном экране, но без света</label>
 <button class="sel" id="amb" style="margin-top:8px">Подложка в тишине: вкл</button>
 
 <label style="margin-top:12px">База жанров (определяет цвета и характер ИИ)</label>
@@ -291,7 +292,7 @@ input[type=time]{width:100%;padding:10px 12px;border-radius:12px;border:1px soli
 <input type="range" id="carNightB" min="2" max="60" value="15">
 
 <button class="sel" id="carEye" style="margin-top:10px">Защита зрения ночью: вкл</button>
-<label>Смягчает резкий синий спектр и вспышки в тёмном салоне</label>
+<label style="text-transform:none;letter-spacing:0;font-weight:500">Смягчает резкий синий спектр и вспышки в тёмном салоне</label>
 <button class="sel" id="carTheme" style="margin-top:8px">Тёмный экран ночью: вкл</button>
 </div>
 
@@ -337,9 +338,11 @@ function write(p,prio){
     return;
   }
   busy=true;
-  ch.writeValueWithoutResponse(new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]))
-  .catch(function(){werr++;$('ver').textContent='версия 25 · сбоев: '+werr;})
-  .then(function(){
+  var pkt=new Uint8Array([0x7E,0x07,0x05,0x03,p[0],p[1],p[2],0x10,0xEF]);
+  var op=ch.writeValueWithoutResponse?ch.writeValueWithoutResponse(pkt):ch.writeValue(pkt);
+  op.catch(function(){
+    if(ch){werr++;$('ver').textContent='версия 30 · сбоев: '+werr;}
+  }).then(function(){
     busy=false;
     if(pending){
       var q=pending,qp=pendingPrio;
@@ -380,7 +383,7 @@ $('conn').onclick=function(){
   .then(function(s){return s.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');})
   .then(function(c){
     ch=c;busy=false;pending=null;pendingPrio=false;werr=0;lastSentRGB=[-1,-1,-1];
-    $('ver').textContent='версия 25';
+    $('ver').textContent='версия 30';
     st.textContent='Подключено';
     sendStatic(true);
   })
@@ -432,6 +435,16 @@ $('off').onclick=function(){setMode(null,true);sendRGB(0,0,0,true,true);};
   $('presets').appendChild(b);
 });
 syncColorUI('#FF0000');
+
+/* Движок режимов */
+function setMode(m,quiet){
+  cancelAnimationFrame(raf);
+  mode=m;
+  document.querySelectorAll('[data-fx]').forEach(function(b){
+    b.className=(b.getAttribute('data-fx')===m)?'sel':'alt';
+  });
+  if(m)wakeOn();else wakeOff();
+  if(m){
     touch();
     if(m!=='music'&&m!=='ambient'&&audio&&!audio.paused)audio.pause();
     lastSentRGB=[-1,-1,-1];
@@ -503,7 +516,7 @@ $('fxstop').onclick=function(){setMode(null);};
 $('speed').oninput=function(e){speed=+e.target.value;$('spv').textContent=speed;};
 
 /* =====================================================================
-   БАЗА ДАННЫХ ЖАНРОВ И ИИ-СВЕТОРЕЖИССЁР (v24)
+   БАЗА ДАННЫХ ЖАНРОВ И ИИ-СВЕТОРЕЖИССЁР
    ===================================================================== */
 var GENRE_DB={
   phonk:{
@@ -572,7 +585,7 @@ var aiHue=342,aiTargetHue=342,aiVal=0,aiSpark=0;
 var vBaseHue=352,vVocalHue=188,vTargetBase=352,vTargetVocal=188,vSpark=0,lastPalShift=0;
 var shortEnergy=0,longEnergy=0,dropBoost=0,lastTeleT=0;
 var styleStats={bass:0,mid:0,high:0,crest:0};
-var activeMap=null,scanBusy=false;
+var activeMap=null,scanBusy=false,pendingScanTrack=null;
 var pads={build:false,flash:false,drop:false,buildAmt:0,flashAmt:0};
 
 var VIRTUOSO_PALETTES=[
@@ -625,7 +638,7 @@ function resetAudioStats(){
   envPeak=[0.14,0.11,0.09,0.14];
   sm=[0,0,0,0];prevLin=[0,0,0,0];fluxAvg=[0.02,0.02,0.02,0.02];
   mudFloor=[0,0,0];mudCut=0;lastMudHit=0;
-  bandFlash=[0,0,0];flash=0;
+  bandFlash=[0,0,0];flash=0;lastT=0;
   vocalEnv=0;snareFlash=0;lastSnare=0;vSpark=0;aiSpark=0;aiVal=0;
   rawBeats=[];beatIntervals=[];estBpm=0;beatPeriod=500;beatPhase=0;barBeat=0;lastRawBeat=0;
   shortEnergy=0;longEnergy=0;dropBoost=0;
@@ -767,7 +780,6 @@ function runAnalyzer(t,dt){
   var raw=[rawBass,rawMid,rawHigh,rawAll];
   var dbs=[bRes.db,mRes.db,hRes.db];
 
-  /* Накопление акустической сигнатуры для базы жанров */
   var stAlpha=1-Math.exp(-dt/2200);
   styleStats.bass=styleStats.bass*(1-stAlpha)+rawBass*stAlpha;
   styleStats.mid=styleStats.mid*(1-stAlpha)+rawMid*stAlpha;
@@ -911,7 +923,6 @@ function updateVirtuosoPalette(sig,t,dt){
     vTargetBase=pair[0];
     vTargetVocal=pair[1];
   }else{
-    /* В авто-режиме берёт цвета из базы жанра с тонкой гармонической подстройкой */
     vTargetBase=sig.genre.hues[0];
     vTargetVocal=sig.genre.hues[1];
     if(t-lastPalShift>3600){
@@ -937,23 +948,18 @@ function runAiDirector(sig,t,dt){
   var isBuild=(ms===2);
   var isBreak=(ms===0||sig.curE<0.16);
 
-  /* Выбор целевого оттенка ИИ на основе жанра, фразы такта, вокала и яркости тембра */
   var baseH=g.hues[0],vocH=g.hues[1],accH=g.hues[2];
   var barHalf=Math.floor(sig.barBeat/4);
   var tempShift=(led[2]-led[0])*22;
 
   if(isBreak){
-    /* Яма: медленный перелив между вокальным и акцентным оттенком жанра */
     var wave=(Math.sin(t*0.0018)+1)/2;
     aiTargetHue=(vocH+(accH-vocH)*wave+360)%360;
   }else if(isBuild){
-    /* Разгон: движение от вокального оттенка к акцентному цвету дропа */
     aiTargetHue=(vocH+(accH-vocH)*Math.min(1,0.35+sig.beatPhase*0.5)+360)%360;
   }else if(isDrop){
-    /* Дроп: чередование основного и акцентного цвета по тактам и долям */
     aiTargetHue=(sig.barBeat%2===0)?baseH:accH;
   }else{
-    /* Куплет: бас держит корневой цвет, голос переводит в мелодический */
     var vWeight=Math.max(0,Math.min(1,sig.vocalEnv*1.35-led[0]*0.3));
     var hSpan=((vocH-baseH+540)%360)-180;
     aiTargetHue=(baseH+hSpan*vWeight+(barHalf?12:-12)+tempShift+360)%360;
@@ -966,7 +972,6 @@ function runAiDirector(sig,t,dt){
   var glideMs=isDrop?110:(isBreak?650:g.glide);
   aiHue=(aiHue+hDiff*(1-Math.exp(-dt/glideMs))+360)%360;
 
-  /* Расчёт яркости и контраста под конкретный жанр и сцену */
   var targetVal=0;
   if(isBreak){
     targetVal=0.14+0.34*Math.max(sig.vocalEnv,led[0]*0.7);
@@ -988,13 +993,11 @@ function runAiDirector(sig,t,dt){
   var sat=isDrop?1.0:(isBreak?0.84:0.94);
   var outRgb=hsv(aiHue,sat,Math.min(1,aiVal));
 
-  /* Жанровый снэр-акцент */
   if(sig.snareFlash>0.14&&soloMode!=='kick'&&!isBreak){
     var snMix=sig.snareFlash*(isDrop?0.65:0.42);
     outRgb=mixRgb(outRgb,g.snare,snMix);
   }
 
-  /* Искры на высоких частотах */
   if(flux[2]>0.062&&lvl[2]>0.22){
     aiSpark=Math.min(1,aiSpark+flux[2]*(isDrop?1.6:1.0));
   }
@@ -1011,7 +1014,6 @@ function runDirector(sig,t,dt){
   var led=sig.led,lvl=sig.lvl,flux=sig.flux;
   var s=(soloMode==='kick')?0:(soloMode==='vocal'||soloMode==='melody'?1:srcBand);
 
-  /* Живые DJ-пэды (приоритет поверх любого режима) */
   if(pads.drop)return {rgb:[0,0,0],prio:true,allowAmb:false};
   if(pads.build){
     pads.buildAmt=Math.min(1,pads.buildAmt+dt/2200);
@@ -1029,12 +1031,10 @@ function runDirector(sig,t,dt){
     return {rgb:[255*fMix,245*fMix,255*fMix],prio:fMix>0.8,allowAmb:false};
   }
 
-  /* 1. ИИ-РЕЖИССЁР (Жанровая база + структура трека + гармония) */
   if(musicMode==='auto'){
     return runAiDirector(sig,t,dt);
   }
 
-  /* 2. ВИРТУОЗ: Контрастная перекличка 2 линий (Бас против Вокала + Снэр-прожектор) */
   if(musicMode==='virtuoso'){
     updateVirtuosoPalette(sig,t,dt);
     var isVocTurn=(sig.vocalEnv>led[0]*0.92&&sig.vocalEnv>0.18);
@@ -1062,13 +1062,11 @@ function runDirector(sig,t,dt){
 
   var mudScale=(mudCut>0)?0.35:1;
 
-  /* 3. ЧАСТОТЫ: Классическая 3-канальная цветомузыка (R=Бас, G=Голос, B=Верх) */
   if(musicMode==='spec'){
     var boost=(1+dropBoost)*mudScale;
     return {rgb:[led[0]*255*boost,led[1]*255*boost,led[2]*255*boost],prio:sig.isBeat,allowAmb:true};
   }
 
-  /* 4. RGB БИТ: Только ударные импульсы с быстрым затуханием в темноту */
   if(musicMode==='rgbbeat'){
     var bRels=[115,95,58],bGates=[0.044,0.042,0.048],anyHit=false,i;
     for(i=0;i<3;i++){
@@ -1084,13 +1082,11 @@ function runDirector(sig,t,dt){
     return {rgb:[bandFlash[0]*255*mudScale,bandFlash[1]*255*mudScale,bandFlash[2]*255*mudScale],prio:anyHit,allowAmb:false};
   }
 
-  /* 5. ПУЛЬС: Плавное дыхание выбранным цветом с 1-й вкладки */
   if(musicMode==='pulse'){
     var kp=Math.min(1,0.04+0.96*led[s]*(1+dropBoost*0.45));
     return {rgb:[color[0]*kp,color[1]*kp,color[2]*kp],prio:false,allowAmb:true};
   }
 
-  /* 6. БИТ: Клубный строб-шагомер со сменой цвета на каждом ударе и паузой темноты */
   if(musicMode==='beat'){
     var thr=Math.max(0.046,fluxAvg[s]*1.36);
     var flB=flux[s]+(s===0||s===3?sig.transient*0.22:0);
@@ -1102,13 +1098,12 @@ function runDirector(sig,t,dt){
     return {rgb:hsv(hue,1,flash*mudScale),prio:bHit,allowAmb:false};
   }
 
-  /* 7. РАДУГА: Непрерывный жидкий поток цвета без резких отключений */
   hue=(hue+dt*(0.022+led[s]*0.14))%360;
   var rVal=Math.min(1,0.28+0.72*led[s]);
   return {rgb:hsv(hue,0.95,rVal),prio:false,allowAmb:true};
 }
 
-/* --- СЛОЙ 3: ПАЛИТРА И ВЫВОД (Palette) --- */
+/* --- СЛОЙ 3: ПАЛИТРА И ВЫВОД --- */
 function enhanceContrast(r,g,b){
   var mx=Math.max(r,g,b);
   if(mx<12)return [r,g,b];
@@ -1173,8 +1168,21 @@ function readBlobBuffer(blob){
   return new Response(blob).arrayBuffer();
 }
 
+function finishScan(){
+  scanBusy=false;
+  if(pendingScanTrack){
+    var nxt=pendingScanTrack;
+    pendingScanTrack=null;
+    if(!nxt.map)preAnalyzeTrack(nxt);
+  }
+}
+
 function preAnalyzeTrack(trackObj,preloadedAb){
-  if(!trackObj||(!trackObj.blob&&!preloadedAb)||scanBusy)return;
+  if(!trackObj||(!trackObj.blob&&!preloadedAb))return;
+  if(scanBusy){
+    pendingScanTrack=trackObj;
+    return;
+  }
   scanBusy=true;
   var bufPromise=preloadedAb?Promise.resolve(preloadedAb):readBlobBuffer(trackObj.blob);
   bufPromise.then(function(ab){
@@ -1239,9 +1247,9 @@ function preAnalyzeTrack(trackObj,preloadedAb){
       drawTrackMap();
     }
     saveTrackMeta(trackObj);
-    scanBusy=false;
+    finishScan();
   }).catch(function(){
-    scanBusy=false;
+    finishScan();
   });
 }
 
@@ -1250,7 +1258,7 @@ function drawTrackMap(){
   if(!cvs)return;
   var dpr=window.devicePixelRatio||1;
   var w=cvs.clientWidth||400;
-  var h=34;
+  var h=36;
   if(cvs.width!==Math.round(w*dpr))cvs.width=Math.round(w*dpr);
   if(cvs.height!==Math.round(h*dpr))cvs.height=Math.round(h*dpr);
   var ctx=cvs.getContext('2d');
@@ -1283,6 +1291,7 @@ function drawTrackMap(){
   ctx.fillRect(Math.min(w-2,Math.max(0,w*prog-1)),0,2,h);
   ctx.restore();
 }
+window.addEventListener('resize',drawTrackMap);
 
 $('tmap').onclick=function(e){
   if(!audio.duration||!isFinite(audio.duration))return;
@@ -1408,6 +1417,7 @@ $('playBtn').onclick=function(){
   else audio.pause();
 };
 function onPlay(){
+  lastT=0;
   syncDeckUI();
   if(lightOn){initAudio();setMode('music');}else{setMode(null,true);}
 }
@@ -1446,7 +1456,7 @@ function recreateAudio(){
   recreating=true;
   old.pause();
   var a=document.createElement('audio');
-  a.className='hid';a.preload='auto';a.setAttribute('playsinline','');
+  a.id='audio';a.className='hid';a.preload='auto';a.setAttribute('playsinline','');
   old.parentNode.replaceChild(a,old);
   audio=a;anFile=null;dly=null;
   recreating=false;
@@ -1533,9 +1543,9 @@ function listTracks(autoPlayName){
 function renderLib(){
   var box=$('lib');box.innerHTML='';
   tracks.forEach(function(v,i){
-    var row=document.createElement('div');row.className='trk';
+    var row=document.createElement('div');
+    row.className='trk'+(i===cur?' active':'');
     var n=document.createElement('span');n.textContent=v.name;
-    if(i===cur)n.style.color='var(--a2)';
     n.onclick=function(){
       if(i===cur&&audio.src){
         if(audio.paused){if(lightOn)initAudio();audio.play().catch(function(){});}
@@ -1781,6 +1791,22 @@ document.querySelectorAll('[data-sun]').forEach(function(b){
   }
 })();
 
+/* Тема */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  $('theme').textContent=(t==='dark')?'День':'Ночь';
+  var mt=$('metaTheme');
+  if(mt)mt.setAttribute('content',t==='dark'?'#07070b':'#f4f5f8');
+}
+(function(){
+  applyTheme(loadCfg('theme','dark'));
+  $('theme').onclick=function(){
+    var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+    applyTheme(t);
+    saveCfg('theme',t);
+  };
+})();
+
 /* =====================================================================
    АВТОМОБИЛЬНЫЙ РЕЖИМ (ДЕНЬ / НОЧЬ ПО ГЕО ИЛИ ВРЕМЕНИ)
    ===================================================================== */
@@ -1866,8 +1892,7 @@ function updateCarMode(forceSend){
   if(carTheme){
     var wantTheme=carIsNight?'dark':'light';
     if(document.documentElement.getAttribute('data-theme')!==wantTheme){
-      document.documentElement.setAttribute('data-theme',wantTheme);
-      $('theme').textContent=(wantTheme==='dark')?'День':'Ночь';
+      applyTheme(wantTheme);
       saveCfg('theme',wantTheme);
     }
   }
@@ -1955,18 +1980,6 @@ $('carTheme').onclick=function(){
 })();
 setInterval(function(){if(carOn)updateCarMode(false);},15000);
 
-/* Тема */
-(function(){
-  var root=document.documentElement;
-  function apply(t){root.setAttribute('data-theme',t);$('theme').textContent=(t==='dark')?'День':'Ночь';}
-  var saved=loadCfg('theme','dark');
-  apply(saved);
-  $('theme').onclick=function(){
-    var t=root.getAttribute('data-theme')==='dark'?'light':'dark';
-    apply(t);
-    saveCfg('theme',t);
-  };
-})();
 /* Статус подключения: зелёная точка */
 setInterval(function(){st.className=(ch?'ok':'');},500);
 </script>
